@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, CheckCircle2, Bell, Download, ShieldCheck, DollarSign, Wallet, ShieldAlert, User } from 'lucide-react';
+import { Search, Plus, CheckCircle2, Bell, ShieldCheck, DollarSign, Wallet, ShieldAlert, User, RotateCcw, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +25,12 @@ export default function AdminUsersPage() {
   const [notifMessage, setNotifMessage] = useState('');
   const [notifCategory, setNotifCategory] = useState<'PROFIT' | 'SECURITY' | 'SYSTEM'>('PROFIT');
   const [notifSuccessMsg, setNotifSuccessMsg] = useState(false);
+
+  // Reset Account Modal State
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccessMsg, setResetSuccessMsg] = useState(false);
 
   // Start with empty array — DB data loaded via useEffect below
   const [users, setUsers] = useState<any[]>([]);
@@ -121,6 +127,39 @@ export default function AdminUsersPage() {
       setNotifTitle('');
       setNotifMessage('');
     }, 1500);
+  };
+
+  // Handle Reset Account — clears all history and zeros all balances
+  const handleResetAccount = async () => {
+    if (!selectedUser || resetConfirmText !== 'RESET') return;
+    setResetLoading(true);
+    try {
+      const res = await fetch('/api/admin/users/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: selectedUser.id }),
+      });
+      const data = await res.json();
+      if (data?.success) {
+        // Zero out the balance in local state
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === selectedUser.id ? { ...u, usdtBalance: 0.0 } : u
+          )
+        );
+        setSelectedUser((prev: any) => prev ? { ...prev, usdtBalance: 0.0 } : prev);
+        setResetSuccessMsg(true);
+        setTimeout(() => {
+          setResetSuccessMsg(false);
+          setIsResetModalOpen(false);
+          setResetConfirmText('');
+        }, 2000);
+      }
+    } catch (err) {
+      console.warn('Reset API error:', err);
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   // Toggle Freeze Status
@@ -253,6 +292,24 @@ export default function AdminUsersPage() {
                     >
                       Notify
                     </Button>
+
+                    {/* Reset Account Button — only for USER role */}
+                    {u.role !== 'ADMIN' && (
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        className="text-[11px] font-bold px-2.5"
+                        leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+                        onClick={() => {
+                          setSelectedUser(u);
+                          setResetConfirmText('');
+                          setResetSuccessMsg(false);
+                          setIsResetModalOpen(true);
+                        }}
+                      >
+                        Reset
+                      </Button>
+                    )}
 
                     {/* Freeze/Unfreeze Button */}
                     <Button
@@ -410,6 +467,115 @@ export default function AdminUsersPage() {
                 Send Push Notification
               </Button>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Reset Account Modal ── */}
+      {selectedUser && (
+        <Modal
+          isOpen={isResetModalOpen}
+          onClose={() => {
+            setIsResetModalOpen(false);
+            setResetConfirmText('');
+          }}
+          title={`Reset Account — ${selectedUser.name}`}
+        >
+          <div className="space-y-4 text-xs">
+            {resetSuccessMsg ? (
+              <div className="p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center space-x-2 text-emerald-300 font-bold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{selectedUser.name}'s account has been fully reset. Balance zeroed, history cleared.</span>
+              </div>
+            ) : (
+              <>
+                {/* Danger Warning */}
+                <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/40 space-y-2">
+                  <div className="flex items-center space-x-2 text-rose-400 font-extrabold">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    <span>DESTRUCTIVE ACTION — IRREVERSIBLE</span>
+                  </div>
+                  <p className="text-slate-300 leading-relaxed">
+                    This will permanently delete <strong className="text-white">all transaction history</strong> and
+                    set <strong className="text-white">all wallet balances to $0.00</strong> for this user.
+                    This cannot be undone.
+                  </p>
+                </div>
+
+                {/* User preview */}
+                <div className="p-3.5 rounded-xl bg-[#0B1220] border border-slate-800 flex items-center space-x-3">
+                  <img
+                    src={selectedUser.avatar || '/profile-pic.jpeg'}
+                    alt={selectedUser.name}
+                    className="w-10 h-10 rounded-full object-cover ring-2 ring-rose-500/40"
+                  />
+                  <div>
+                    <p className="font-extrabold text-white">{selectedUser.name}</p>
+                    <p className="text-[11px] text-slate-400 font-mono">{selectedUser.email}</p>
+                    <p className="text-[11px] text-rose-400 font-mono font-bold mt-0.5">
+                      Current Balance: ${(selectedUser.usdtBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} USD → $0.00
+                    </p>
+                  </div>
+                </div>
+
+                {/* What will be deleted */}
+                <div className="space-y-1.5 text-[11px]">
+                  <p className="text-slate-400 font-bold uppercase tracking-wider">The following will be permanently deleted:</p>
+                  <ul className="space-y-1 text-slate-300">
+                    {[
+                      'All wallet ledger transactions',
+                      'All withdrawal requests',
+                      'All deposit records',
+                      'All gift card submissions',
+                      'All platform notifications',
+                      'All wallet balances → reset to $0.00',
+                    ].map((item) => (
+                      <li key={item} className="flex items-center space-x-1.5">
+                        <span className="w-1 h-1 rounded-full bg-rose-500 shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Confirmation input */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-300">
+                    Type <span className="text-rose-400 font-black">RESET</span> to confirm
+                  </label>
+                  <input
+                    type="text"
+                    value={resetConfirmText}
+                    onChange={(e) => setResetConfirmText(e.target.value.toUpperCase())}
+                    placeholder="Type RESET here…"
+                    className="w-full bg-[#0B1220] border border-rose-500/40 rounded-xl p-3 text-sm text-white font-mono font-bold placeholder:text-slate-600 focus:outline-none focus:border-rose-400"
+                  />
+                </div>
+
+                <div className="flex space-x-3 pt-1">
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    className="flex-1"
+                    onClick={() => {
+                      setIsResetModalOpen(false);
+                      setResetConfirmText('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="md"
+                    className="flex-1 font-bold bg-rose-600 hover:bg-rose-500 text-white border-0"
+                    disabled={resetConfirmText !== 'RESET' || resetLoading}
+                    onClick={handleResetAccount}
+                    leftIcon={<RotateCcw className="w-4 h-4" />}
+                  >
+                    {resetLoading ? 'Resetting…' : 'Confirm Reset'}
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </Modal>
       )}
