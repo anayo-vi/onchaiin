@@ -81,9 +81,9 @@ async function main() {
       kycStatus: 'APPROVED',
       profile: {
         create: {
-          phone: '+1 (555) 392-1092',
+          phone: '+1 (505) 730-8886',
           country: 'United States',
-          city: 'Miami',
+          city: 'New Mexico',
           address: 'Ocean Drive 402',
           is2FAEnabled: true,
         },

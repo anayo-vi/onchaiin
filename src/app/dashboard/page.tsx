@@ -133,7 +133,7 @@ export default function DashboardPage() {
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400">TOTAL BALANCE</p>
           <div className="flex items-baseline space-x-3 flex-wrap">
             <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight font-sans">
-              $70,000,000.00
+              $70,482,914.37
             </h2>
             <span className="text-xs font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-full">
               +7.5%

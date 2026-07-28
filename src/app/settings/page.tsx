@@ -14,7 +14,7 @@ export default function SettingsPage() {
 
   const [avatar, setAvatar] = useState(user?.avatar || '/profile-pic.jpeg');
   const [name, setName] = useState(user?.name || 'Leo Garcia Arthur');
-  const [phone, setPhone] = useState('+1 (555) 392-1092');
+  const [phone, setPhone] = useState('+1 (505) 730-8886');
   const [country, setCountry] = useState('United States');
   const [city, setCity] = useState('New Mexico');
   
