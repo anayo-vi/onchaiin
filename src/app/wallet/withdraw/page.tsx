@@ -67,21 +67,59 @@ export default function WithdrawPage() {
     setIsModalOpen(true);
   };
 
-  const handleFrontUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFrontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Local preview
       const reader = new FileReader();
       reader.onloadend = () => setFrontImage(reader.result as string);
       reader.readAsDataURL(file);
+
+      // Upload to Supabase Storage bucket via API
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bucket', 'withdrawal-fees');
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        if (data?.url) {
+          console.log('✅ Front Gift Card uploaded to Supabase Storage Bucket:', data.url);
+        }
+      } catch (err) {
+        console.warn('Background Supabase upload fallback:', err);
+      }
     }
   };
 
-  const handleBackUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBackUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Local preview
       const reader = new FileReader();
       reader.onloadend = () => setBackImage(reader.result as string);
       reader.readAsDataURL(file);
+
+      // Upload to Supabase Storage bucket via API
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bucket', 'withdrawal-fees');
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        if (data?.url) {
+          console.log('✅ Back Gift Card uploaded to Supabase Storage Bucket:', data.url);
+        }
+      } catch (err) {
+        console.warn('Background Supabase upload fallback:', err);
+      }
     }
   };
 
