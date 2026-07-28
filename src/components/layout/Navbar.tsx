@@ -30,6 +30,9 @@ export function Navbar() {
   const user = session?.user as any;
   const isAdmin = user?.role === 'ADMIN';
 
+  // Public landing/auth pages where standard clean header is displayed
+  const isPublicPage = pathname === '/' || pathname === '/auth/login' || pathname.startsWith('/auth/');
+
   // Real-time Avatar Sync across all components
   useEffect(() => {
     const syncAvatar = () => {
@@ -60,11 +63,33 @@ export function Navbar() {
         { href: '/kyc', label: 'KYC', icon: FileCheck },
       ];
 
+  // ---------------------------------------------------------------------
+  // 1. PUBLIC PAGES HEADER (Home page "/" & Login page "/auth/login")
+  // Displays normal clean header with centered logo
+  // ---------------------------------------------------------------------
+  if (isPublicPage) {
+    return (
+      <header className="sticky top-0 z-40 w-full glass-card border-b border-slate-800/80 bg-[#111A2E]/90 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative flex items-center justify-center min-h-[100px] py-1">
+            <Link href="/" className="hover:opacity-90 transition-opacity flex items-center justify-center my-auto">
+              <Logo size="md" />
+            </Link>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // ---------------------------------------------------------------------
+  // 2. AUTHENTICATED INTERNAL APP HEADER (/dashboard, /wallet, /admin, etc.)
+  // Displays navigation links, centered logo, and user dropdown menu
+  // ---------------------------------------------------------------------
   return (
     <header className="sticky top-0 z-40 w-full glass-card border-b border-slate-800/80 bg-[#111A2E]/90 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex items-center justify-between min-h-[100px] py-1">
-          {/* Left Navigation Links (Desktop Left Side when session exists) */}
+          {/* Left Navigation Links (Desktop Left Side) */}
           {session ? (
             <nav className="hidden md:flex items-center space-x-1.5">
               {navLinks.map((link) => {
@@ -90,7 +115,7 @@ export function Navbar() {
             <div className="hidden md:block w-32" />
           )}
 
-          {/* Centered Brand Logo (Original Design: Centered with Float Effect) */}
+          {/* Centered Brand Logo */}
           <Link href={session ? '/dashboard' : '/'} className="hover:opacity-90 transition-opacity flex items-center justify-center my-auto">
             <Logo size="md" />
           </Link>
