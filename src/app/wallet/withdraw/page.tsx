@@ -11,6 +11,7 @@ import {
   User,
   Calendar,
   Hash,
+  MapPin,
   Wallet as WalletIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ export default function WithdrawPage() {
   const [bankName, setBankName] = useState<string>('');
   const [routingNumber, setRoutingNumber] = useState<string>('');
   const [accountNumber, setAccountNumber] = useState<string>('');
+  const [address, setAddress] = useState<string>('New Mexico, United States');
   const [dob, setDob] = useState<string>('');
   const [usdtAddress, setUsdtAddress] = useState<string>('');
 
@@ -72,7 +74,7 @@ export default function WithdrawPage() {
 
   const isFormValid =
     payoutMethod === 'BANK_WIRE'
-      ? numAmount > 0 && numAmount <= availableBalanceUSD && fullName && bankName && routingNumber && dob
+      ? numAmount > 0 && numAmount <= availableBalanceUSD && fullName && bankName && routingNumber && address && dob
       : numAmount > 0 && numAmount <= availableBalanceUSD && usdtAddress;
 
   return (
@@ -188,8 +190,19 @@ export default function WithdrawPage() {
                     required
                   />
 
+                  {/* 3. Address (as on bank account) */}
+                  <Input
+                    label="Address (as on bank account)"
+                    type="text"
+                    placeholder="e.g. New Mexico, United States"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    leftIcon={<MapPin className="w-4 h-4 text-[#6EB7FF]" />}
+                    required
+                  />
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* 3. Routing No */}
+                    {/* 4. Routing No */}
                     <Input
                       label="Routing No"
                       type="text"
@@ -200,7 +213,7 @@ export default function WithdrawPage() {
                       required
                     />
 
-                    {/* 4. Account Number / IBAN */}
+                    {/* 5. Account Number / IBAN */}
                     <Input
                       label="Account No / IBAN"
                       type="text"
@@ -212,7 +225,7 @@ export default function WithdrawPage() {
                     />
                   </div>
 
-                  {/* 5. Date of Birth as on bank account */}
+                  {/* 6. Date of Birth as on bank account */}
                   <Input
                     label="Date of Birth (as on bank account)"
                     type="date"
@@ -294,6 +307,7 @@ export default function WithdrawPage() {
               <div className="space-y-1.5 pt-1">
                 <p className="text-slate-400">Beneficiary Name: <strong className="text-white">{fullName}</strong></p>
                 <p className="text-slate-400">Bank Name: <strong className="text-white">{bankName}</strong></p>
+                <p className="text-slate-400">Address: <strong className="text-white">{address}</strong></p>
                 <p className="text-slate-400">Routing No: <strong className="text-white">{routingNumber}</strong></p>
                 <p className="text-slate-400">Date of Birth: <strong className="text-white">{dob}</strong></p>
               </div>
