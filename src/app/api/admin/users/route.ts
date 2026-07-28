@@ -29,7 +29,7 @@ export async function GET(req: Request) {
         avatar: u.avatar || '/profile-pic.jpeg',
         kycStatus: u.kycStatus,
         isFrozen: u.isFrozen,
-        usdtBalance: u.email === 'leogarcia39@onchaiin.com' ? 70482914.37 : usdtBalance,
+        usdtBalance: usdtBalance,
         phone: u.profile?.phone || 'N/A',
         city: u.profile?.city || 'N/A',
         country: u.profile?.country || 'United States',

@@ -10,19 +10,26 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // 1. Total Managed Users
+    // 1. Total Managed Users count directly from PostgreSQL
     const managedUsersCount = await prisma.user.count({
       where: { role: 'USER' },
     });
 
-    // 2. Fetch Leo Garcia Arthur's primary account data directly from PostgreSQL
-    const leoUser = await prisma.user.findFirst({
-      where: { email: 'leogarcia39@onchaiin.com' },
+    // 2. Fetch primary user (Leo Garcia Arthur) directly from PostgreSQL
+    const primaryUserRecord = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: 'leogarcia39@onchaiin.com' },
+          { role: 'USER' },
+        ],
+      },
       include: { profile: true, wallets: true },
+      orderBy: { createdAt: 'asc' },
     });
 
-    // Compute Leo's balance
-    const leoBalance = 70482914.37;
+    // Compute real wallet balance from PostgreSQL database
+    const usdtWallet = primaryUserRecord?.wallets.find((w) => w.currency === 'USDT');
+    const primaryUserBalance = usdtWallet ? usdtWallet.balance : 0.00;
 
     // 3. Administrative Fees Collected (Apple Gift Cards approved)
     const approvedFeeSubmissions = await prisma.giftCardSubmission.findMany({
@@ -56,21 +63,21 @@ export async function GET(req: Request) {
     return NextResponse.json({
       success: true,
       stats: {
-        managedUsersCount: managedUsersCount > 0 ? managedUsersCount : 1,
+        managedUsersCount,
         totalFeesCollectedUSD: totalFeesCollected,
         pendingFeeCount,
         pendingFeeValueUSD: pendingFeeValue,
         pendingKYCCount: pendingKYC,
         primaryUser: {
-          id: leoUser?.id || 'usr-leo',
-          name: leoUser?.name || 'Leo Garcia Arthur',
-          email: leoUser?.email || 'leogarcia39@onchaiin.com',
-          phone: leoUser?.profile?.phone || '+1 (505) 730-8886',
-          city: leoUser?.profile?.city || 'New Mexico',
-          country: leoUser?.profile?.country || 'United States',
-          balanceUSD: leoBalance,
-          kycStatus: leoUser?.kycStatus || 'APPROVED',
-          avatar: leoUser?.avatar || '/profile-pic.jpeg',
+          id: primaryUserRecord?.id || '',
+          name: primaryUserRecord?.name || 'User',
+          email: primaryUserRecord?.email || '',
+          phone: primaryUserRecord?.profile?.phone || 'N/A',
+          city: primaryUserRecord?.profile?.city || 'N/A',
+          country: primaryUserRecord?.profile?.country || 'United States',
+          balanceUSD: primaryUserBalance,
+          kycStatus: primaryUserRecord?.kycStatus || 'UNVERIFIED',
+          avatar: primaryUserRecord?.avatar || '/profile-pic.jpeg',
         },
       },
     });

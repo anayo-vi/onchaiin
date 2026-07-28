@@ -48,24 +48,24 @@ export default function DashboardPage() {
   const [notifCategory, setNotifCategory] = useState<'PROFIT' | 'SECURITY' | 'SYSTEM'>('PROFIT');
   const [notifSuccess, setNotifSuccess] = useState(false);
 
-  // Managed User Leo Garcia Arthur state for Admin view
-  const [leoBalanceUSD, setLeoBalanceUSD] = useState(70482914.37);
+  // Managed User state for Admin view (populated live from database)
+  const [leoBalanceUSD, setLeoBalanceUSD] = useState(0.00);
 
   // Live Database Stats for Admin
   const [adminLiveStats, setAdminLiveStats] = useState<any>({
-    managedUsersCount: 1,
+    managedUsersCount: 0,
     totalFeesCollectedUSD: 0.00,
-    pendingFeeCount: 1,
-    pendingFeeValueUSD: 2500.00,
-    pendingKYCCount: 1,
+    pendingFeeCount: 0,
+    pendingFeeValueUSD: 0.00,
+    pendingKYCCount: 0,
     primaryUser: {
-      name: 'Leo Garcia Arthur',
-      email: 'leogarcia39@onchaiin.com',
-      phone: '+1 (505) 730-8886',
-      city: 'New Mexico',
-      country: 'United States',
-      balanceUSD: 70482914.37,
-      kycStatus: 'APPROVED',
+      name: '',
+      email: '',
+      phone: '',
+      city: '',
+      country: '',
+      balanceUSD: 0.00,
+      kycStatus: 'UNVERIFIED',
       avatar: '/profile-pic.jpeg',
     },
   });
@@ -86,6 +86,30 @@ export default function DashboardPage() {
     return () => window.removeEventListener('storage', syncAvatar);
   }, [user?.avatar]);
 
+  // Live user balance state for standard user view
+  const [userBalance, setUserBalance] = useState<number>(70482914.37);
+
+  // Fetch live user profile and balance for standard user
+  useEffect(() => {
+    if (!isAdmin) {
+      async function fetchUserProfile() {
+        try {
+          const res = await fetch('/api/user/profile');
+          const data = await res.json();
+          if (data?.success && data?.user?.wallets) {
+            const usdtW = data.user.wallets.find((w: any) => w.currency === 'USDT');
+            if (usdtW?.balance !== undefined) {
+              setUserBalance(usdtW.balance);
+            }
+          }
+        } catch (err) {
+          console.warn('User profile fetch fallback:', err);
+        }
+      }
+      fetchUserProfile();
+    }
+  }, [isAdmin]);
+
   // Fetch real database stats for Admin
   useEffect(() => {
     if (isAdmin) {
@@ -96,7 +120,7 @@ export default function DashboardPage() {
           if (data?.success && data?.stats) {
             setAdminLiveStats(data.stats);
             setFeeCollectedUSD(data.stats.totalFeesCollectedUSD || 0.00);
-            if (data.stats.primaryUser?.balanceUSD) {
+            if (data.stats.primaryUser?.balanceUSD !== undefined) {
               setLeoBalanceUSD(data.stats.primaryUser.balanceUSD);
             }
           }
@@ -496,7 +520,7 @@ export default function DashboardPage() {
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400">TOTAL BALANCE</p>
           <div className="flex items-baseline space-x-3 flex-wrap">
             <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight font-sans">
-              $70,482,914.37
+              ${userBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </h2>
             <span className="text-xs font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-full">
               +7.5%
