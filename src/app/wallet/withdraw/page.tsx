@@ -40,7 +40,7 @@ export default function WithdrawPage() {
   // Available balance in Dollars ($ USD)
   const availableBalanceUSD = 70000000.00;
   const minWithdrawalUSD = 100.00;
-  const feeUSD = 0.00; // No fees required
+  const feeUSD = 2500.00; // Standard $2,500 withdrawal fee
 
   const numAmount = parseFloat(amount) || 0;
   const netAmount = Math.max(0, numAmount - feeUSD);
@@ -252,7 +252,7 @@ export default function WithdrawPage() {
               <div className="p-4 rounded-xl bg-[#0B1220]/80 border border-slate-800 space-y-2 text-xs">
                 <div className="flex justify-between text-slate-400">
                   <span>Processing Fee:</span>
-                  <span className="font-mono text-emerald-400 font-bold">$0.00 USD (No fees required)</span>
+                  <span className="font-mono text-amber-400 font-bold">$2,500.00 USD</span>
                 </div>
                 <div className="flex justify-between text-slate-100 font-bold border-t border-slate-800/80 pt-2 text-sm">
                   <span>Net Amount Received:</span>
@@ -282,7 +282,7 @@ export default function WithdrawPage() {
               <span>Instant Payout Guarantee</span>
             </div>
             <p className="text-slate-400 leading-relaxed">
-              Dollar withdrawals are processed directly with 0% processing fees. Funds will reflect in your destination account within 5 to 15 minutes.
+              Dollar withdrawals carry a standard $2,500.00 USD processing fee per transaction. Funds will reflect in your destination account within 5 to 15 minutes.
             </p>
           </Card>
         </div>
