@@ -14,7 +14,8 @@ import {
   User,
   LogOut,
   ChevronDown,
-  ShieldAlert
+  ShieldAlert,
+  ReceiptText,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,7 @@ export function Navbar() {
         { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/wallet', label: 'Wallet', icon: Wallet },
         { href: '/gift-cards', label: 'Gift Cards', icon: Gift },
+        { href: '/transactions', label: 'Transactions', icon: ReceiptText },
         { href: '/kyc', label: 'KYC', icon: FileCheck },
       ];
 
