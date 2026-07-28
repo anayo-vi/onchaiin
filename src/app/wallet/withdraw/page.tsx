@@ -8,8 +8,7 @@ import {
   Lock,
   DollarSign,
   Building,
-  Wallet as WalletIcon,
-  CreditCard
+  Wallet as WalletIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -18,7 +17,7 @@ import { Modal } from '@/components/ui/modal';
 
 export default function WithdrawPage() {
   const [amount, setAmount] = useState<string>('');
-  const [payoutMethod, setPayoutMethod] = useState<'BANK_WIRE' | 'USDT_WALLET' | 'ZELLE_ACH'>('BANK_WIRE');
+  const [payoutMethod, setPayoutMethod] = useState<'BANK_WIRE' | 'USDT_WALLET'>('BANK_WIRE');
   const [destinationDetails, setDestinationDetails] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [password, setPassword] = useState('');
@@ -60,7 +59,7 @@ export default function WithdrawPage() {
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
       <div>
         <h1 className="text-2xl font-black text-white">Withdraw Funds ($ USD)</h1>
-        <p className="text-xs text-slate-400">Request payout directly to your bank account, Zelle/ACH, or USDT dollar wallet</p>
+        <p className="text-xs text-slate-400">Request payout directly to your bank account or USDT dollar wallet</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -80,44 +79,31 @@ export default function WithdrawPage() {
               {/* Payout Method Selection */}
               <div className="space-y-2">
                 <label className="text-xs uppercase font-bold tracking-wider text-slate-400">Select Payout Method</label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setPayoutMethod('BANK_WIRE')}
-                    className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-1 transition-all ${
+                    className={`p-3.5 rounded-xl border flex flex-col items-center justify-center space-y-1.5 transition-all ${
                       payoutMethod === 'BANK_WIRE'
                         ? 'gradient-bg-blue text-[#0B1220] font-bold shadow-lg shadow-[#5A9BFF]/30 border-[#6EB7FF]'
                         : 'bg-[#111A2E] border-slate-800 text-slate-300 hover:bg-[#1C2B4A]'
                     }`}
                   >
                     <Building className="w-5 h-5" />
-                    <span className="text-xs">Bank Wire</span>
+                    <span className="text-xs font-bold">Bank Wire</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPayoutMethod('USDT_WALLET')}
-                    className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-1 transition-all ${
+                    className={`p-3.5 rounded-xl border flex flex-col items-center justify-center space-y-1.5 transition-all ${
                       payoutMethod === 'USDT_WALLET'
                         ? 'gradient-bg-blue text-[#0B1220] font-bold shadow-lg shadow-[#5A9BFF]/30 border-[#6EB7FF]'
                         : 'bg-[#111A2E] border-slate-800 text-slate-300 hover:bg-[#1C2B4A]'
                     }`}
                   >
                     <WalletIcon className="w-5 h-5" />
-                    <span className="text-xs">USDT Dollar</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPayoutMethod('ZELLE_ACH')}
-                    className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-1 transition-all ${
-                      payoutMethod === 'ZELLE_ACH'
-                        ? 'gradient-bg-blue text-[#0B1220] font-bold shadow-lg shadow-[#5A9BFF]/30 border-[#6EB7FF]'
-                        : 'bg-[#111A2E] border-slate-800 text-slate-300 hover:bg-[#1C2B4A]'
-                    }`}
-                  >
-                    <CreditCard className="w-5 h-5" />
-                    <span className="text-xs">Zelle / ACH</span>
+                    <span className="text-xs font-bold">USDT Dollar</span>
                   </button>
                 </div>
               </div>
@@ -162,16 +148,12 @@ export default function WithdrawPage() {
                 label={
                   payoutMethod === 'BANK_WIRE'
                     ? 'Bank Account & Routing / IBAN Details'
-                    : payoutMethod === 'ZELLE_ACH'
-                    ? 'Zelle Email / Phone or Account Number'
                     : 'Destination USDT (TRC20/ERC20) Wallet Address'
                 }
                 type="text"
                 placeholder={
                   payoutMethod === 'BANK_WIRE'
                     ? 'e.g. Chase Bank, Account #992019, Routing #121000358'
-                    : payoutMethod === 'ZELLE_ACH'
-                    ? 'e.g. user@example.com or +1 (555) 019-2834'
                     : 'e.g. TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'
                 }
                 value={destinationDetails}

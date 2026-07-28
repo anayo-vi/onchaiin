@@ -11,10 +11,10 @@ export default function SettingsPage() {
   const { data: session } = useSession();
   const user = session?.user as any;
 
-  const [name, setName] = useState(user?.name || 'Alex Vance');
-  const [phone, setPhone] = useState('+1 (555) 839-2019');
+  const [name, setName] = useState(user?.name || 'Leo Garcia Arthur');
+  const [phone, setPhone] = useState('+1 (555) 392-1092');
   const [country, setCountry] = useState('United States');
-  const [city, setCity] = useState('San Francisco');
+  const [city, setCity] = useState('New Mexico');
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {
