@@ -176,13 +176,7 @@ export function Navbar() {
               </div>
             </div>
           ) : (
-            <div className="flex items-center space-x-2">
-              <Link href="/auth/login">
-                <Button variant="primary" size="sm" className="text-xs font-bold gradient-bg-blue text-[#0B1220] px-4 py-2">
-                  Sign In
-                </Button>
-              </Link>
-            </div>
+            <div className="hidden md:block w-32" />
           )}
         </div>
       </div>
