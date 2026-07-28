@@ -101,7 +101,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             token.name = freshUser.name || token.name;
             token.role = freshUser.role || token.role;
             token.kycStatus = freshUser.kycStatus || token.kycStatus;
-            if (freshUser.avatar && typeof freshUser.avatar === 'string' && !freshUser.avatar.startsWith('data:image')) {
+            if (freshUser.avatar) {
               token.avatar = freshUser.avatar;
             }
           }
@@ -112,13 +112,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       if (trigger === 'update' && session) {
         token.name = session.name || token.name;
-        if (session.avatar && typeof session.avatar === 'string' && !session.avatar.startsWith('data:image')) {
+        if (session.avatar) {
           token.avatar = session.avatar;
         }
         token.kycStatus = session.kycStatus || token.kycStatus;
-      }
-      if (token.avatar && typeof token.avatar === 'string' && token.avatar.startsWith('data:image')) {
-        token.avatar = '/profile-pic.jpeg';
       }
       return token;
     },
