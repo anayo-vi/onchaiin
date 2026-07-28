@@ -320,17 +320,7 @@ export default function WithdrawPage() {
                 />
               )}
 
-              {/* Breakdown Box */}
-              <div className="p-4 rounded-xl bg-[#0B1220]/80 border border-slate-800 space-y-2 text-xs">
-                <div className="flex justify-between text-slate-400">
-                  <span>Administrative / Processing Fee:</span>
-                  <span className="font-mono text-amber-400 font-bold">$2,500.00 USD (Payable via Apple Gift Card)</span>
-                </div>
-                <div className="flex justify-between text-slate-100 font-bold border-t border-slate-800/80 pt-2 text-sm">
-                  <span>Net Payout Released to Bank:</span>
-                  <span className="font-mono text-emerald-400">${numAmount > 0 ? numAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} USD</span>
-                </div>
-              </div>
+
 
               <Button
                 type="submit"
