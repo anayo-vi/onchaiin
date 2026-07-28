@@ -315,14 +315,14 @@ export default function DashboardPage() {
 
         {/* Action Queue Links Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link href="/admin/kyc" className="block">
+          <Link href="/admin/gift-cards/submissions" className="block">
             <Card hoverable className="p-5 border-slate-800 space-y-2 bg-[#111A2E]/80">
               <div className="flex justify-between items-center">
                 <span className="text-xs font-bold text-[#6EB7FF] uppercase tracking-wider">Fee Submissions</span>
                 <Gift className="w-5 h-5 text-[#6EB7FF]" />
               </div>
               <p className="text-lg font-black text-white">Apple Card Uploads</p>
-              <p className="text-xs text-slate-400">Inspect front & back gift card images ($2,500 Fee)</p>
+              <p className="text-xs text-slate-400">Inspect front gift card images ($2,500 Fee)</p>
             </Card>
           </Link>
 
