@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { User, Phone, MapPin, CheckCircle2, Camera, Upload, ShieldCheck } from 'lucide-react';
+import { User, Phone, MapPin, CheckCircle2, Camera, Upload, ShieldCheck, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
 export default function SettingsPage() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const user = session?.user as any;
 
   const [avatar, setAvatar] = useState(user?.avatar || '/profile-pic.jpeg');
@@ -17,23 +17,77 @@ export default function SettingsPage() {
   const [phone, setPhone] = useState('+1 (555) 392-1092');
   const [country, setCountry] = useState('United States');
   const [city, setCity] = useState('New Mexico');
+  
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Synchronize initial state when session loads
+  useEffect(() => {
+    if (user?.avatar) setAvatar(user.avatar);
+    if (user?.name) setName(user.name);
+  }, [user?.avatar, user?.name]);
+
+  // Real-time Profile Picture File Upload Handler
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setIsUploading(true);
+
+      // Instant local preview
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatar(reader.result as string);
-      };
+      reader.onloadend = () => setAvatar(reader.result as string);
       reader.readAsDataURL(file);
+
+      try {
+        // Upload to Supabase Storage bucket via /api/upload
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bucket', 'avatars');
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+
+        const uploadedUrl = data?.url || reader.result as string;
+        setAvatar(uploadedUrl);
+
+        // Instantly update NextAuth session in real time across the entire application
+        await update({
+          name,
+          avatar: uploadedUrl,
+        });
+
+        console.log('✅ Real-time profile picture updated across session:', uploadedUrl);
+      } catch (err) {
+        console.warn('Real-time profile upload warning:', err);
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  // Real-time Form Save Handler
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+    setIsSaving(true);
+
+    try {
+      // Update NextAuth Session in real time (Navbar, Dashboard, Header)
+      await update({
+        name,
+        avatar,
+      });
+
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3500);
+    } catch (err) {
+      console.error('Error saving profile changes:', err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -46,11 +100,11 @@ export default function SettingsPage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         {/* Left Main Settings Form */}
         <div className="md:col-span-8 space-y-6">
-          {/* Profile Picture Placeholder Card */}
+          {/* Profile Picture Upload Card */}
           <Card glow className="p-6 border-slate-800 bg-[#111A2E]/90 backdrop-blur-2xl space-y-4">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">Profile Picture</h3>
             <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
-              {/* Circular Avatar Preview with Camera Icon */}
+              {/* Circular Avatar Preview with Real-time Camera Overlay */}
               <div className="relative group cursor-pointer">
                 <img
                   src={avatar}
@@ -58,13 +112,17 @@ export default function SettingsPage() {
                   className="w-24 h-24 rounded-full object-cover ring-4 ring-[#6EB7FF]/40 shadow-2xl transition-transform group-hover:scale-105"
                 />
                 <label
-                  htmlFor="avatar-upload"
-                  className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
+                  htmlFor="avatar-upload-input"
+                  className="absolute inset-0 rounded-full bg-black/55 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
                 >
-                  <Camera className="w-7 h-7 text-white drop-shadow-md" />
+                  {isUploading ? (
+                    <Loader2 className="w-7 h-7 text-white animate-spin" />
+                  ) : (
+                    <Camera className="w-7 h-7 text-white drop-shadow-md" />
+                  )}
                 </label>
                 <input
-                  id="avatar-upload"
+                  id="avatar-upload-input"
                   type="file"
                   accept="image/*"
                   onChange={handleAvatarChange}
@@ -73,7 +131,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Upload Action Details */}
-              <div className="space-y-2 text-center sm:text-left">
+              <div className="space-y-2.5 text-center sm:text-left">
                 <div className="flex items-center justify-center sm:justify-start space-x-2">
                   <h4 className="text-base font-extrabold text-white">{name}</h4>
                   <Badge variant="success" size="sm">KYC Verified</Badge>
@@ -82,11 +140,15 @@ export default function SettingsPage() {
                   Allowed formats: PNG, JPG, JPEG or WEBP (Max 5MB)
                 </p>
                 <label
-                  htmlFor="avatar-upload"
+                  htmlFor="avatar-upload-input"
                   className="inline-flex items-center space-x-2 text-xs font-bold text-[#6EB7FF] bg-[#6EB7FF]/15 border border-[#6EB7FF]/30 px-4 py-2 rounded-xl hover:bg-[#6EB7FF]/25 cursor-pointer transition-all"
                 >
-                  <Upload className="w-4 h-4" />
-                  <span>Upload New Picture</span>
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                  <span>{isUploading ? 'Uploading Image...' : 'Upload New Picture'}</span>
                 </label>
               </div>
             </div>
@@ -95,9 +157,9 @@ export default function SettingsPage() {
           {/* Account Details Form */}
           <Card className="p-6 border-slate-800 space-y-6">
             {savedSuccess && (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center space-x-2 text-emerald-400 text-xs">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Profile settings saved successfully!</span>
+              <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center space-x-2 text-emerald-300 text-xs font-bold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Profile settings & avatar updated in real time across the application!</span>
               </div>
             )}
 
@@ -108,6 +170,7 @@ export default function SettingsPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 leftIcon={<User className="w-4 h-4" />}
+                required
               />
 
               <Input
@@ -136,7 +199,13 @@ export default function SettingsPage() {
                 />
               </div>
 
-              <Button type="submit" variant="primary" size="md" className="mt-2 gradient-bg-blue text-[#0B1220] font-bold shadow-lg shadow-[#5A9BFF]/25">
+              <Button 
+                type="submit" 
+                variant="primary" 
+                size="md" 
+                isLoading={isSaving}
+                className="mt-2 gradient-bg-blue text-[#0B1220] font-extrabold shadow-lg shadow-[#5A9BFF]/25 py-3"
+              >
                 Save Profile Changes
               </Button>
             </form>
