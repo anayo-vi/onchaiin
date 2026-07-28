@@ -68,7 +68,6 @@ export function Navbar() {
         { href: '/wallet', label: 'Wallet', icon: Wallet },
         { href: '/gift-cards', label: 'Gift Cards', icon: Gift },
         { href: '/transactions', label: 'History', icon: ReceiptText },
-        { href: '/kyc', label: 'KYC', icon: FileCheck },
       ];
 
   // ---------------------------------------------------------------------
