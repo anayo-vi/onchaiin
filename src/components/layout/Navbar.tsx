@@ -5,29 +5,30 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { 
-  Wallet, 
-  Gift, 
-  FileText, 
-  Settings, 
-  LogOut, 
-  ChevronDown, 
   Bell, 
   User, 
+  LogOut, 
+  ChevronDown, 
+  LayoutDashboard, 
+  Wallet, 
+  Gift, 
+  FileCheck, 
   ShieldAlert,
-  ArrowRightLeft,
-  LayoutDashboard
+  Settings
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/ui/logo';
 
 export function Navbar() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const user = session?.user as any;
-
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(2);
   const [avatarUrl, setAvatarUrl] = useState<string>('/profile-pic.jpeg');
+
+  const user = session?.user as any;
+  const isAdmin = user?.role === 'ADMIN';
 
   // Real-time Avatar Sync across all components
   useEffect(() => {
@@ -46,65 +47,55 @@ export function Navbar() {
   }, [user?.avatar]);
 
   const navLinks = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Wallet', href: '/wallet', icon: Wallet },
-    { name: 'Gift Cards', href: '/gift-cards', icon: Gift },
-    { name: 'KYC', href: '/kyc', icon: FileText },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/wallet', label: 'Wallet', icon: Wallet },
+    { href: '/gift-cards', label: 'Gift Cards', icon: Gift },
+    { href: '/kyc', label: 'KYC', icon: FileCheck },
+    ...(isAdmin ? [{ href: '/admin', label: 'Admin Portal', icon: ShieldAlert }] : []),
   ];
 
-  if (user?.role === 'ADMIN') {
-    navLinks.push({ name: 'Admin Control', href: '/admin', icon: ShieldAlert });
-  }
-
-  const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
-
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-[#0B1220]/90 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
-        {/* Brand Logo */}
-        <Link href="/dashboard" className="flex items-center space-x-3 group">
-          <img
-            src="/icon-new.png"
-            alt="OnChaiin Logo"
-            className="w-8 h-8 rounded-xl logo-float transition-transform group-hover:scale-105"
-          />
-          <div className="flex flex-col">
-            <span className="text-lg font-black tracking-tight text-white group-hover:text-[#6EB7FF] transition-colors">
-              OnChaiin
-            </span>
-          </div>
-        </Link>
-
-        {/* Main Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
-          {navLinks.map((link) => {
-            const Icon = link.icon;
-            const active = isActive(link.href);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  active
-                    ? 'gradient-bg-blue text-[#0B1220] shadow-md shadow-[#5A9BFF]/20 font-bold'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{link.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* User Right Menu & Notifications */}
-        <div className="flex items-center space-x-3">
+    <header className="sticky top-0 z-40 w-full glass-card border-b border-slate-800/80 bg-[#111A2E]/90 backdrop-blur-xl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative flex items-center justify-between min-h-[100px] py-1">
+          {/* Left Navigation Links (Desktop Left Side when session exists) */}
           {session ? (
-            <>
-              {/* Notification Bell */}
+            <nav className="hidden md:flex items-center space-x-1.5">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      isActive
+                        ? 'bg-[#6EB7FF]/15 text-[#6EB7FF] border border-[#6EB7FF]/40 shadow-sm font-bold'
+                        : 'text-slate-300 hover:text-white hover:bg-[#1C2B4A]/50'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{link.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+          ) : (
+            <div className="hidden md:block w-32" />
+          )}
+
+          {/* Centered Brand Logo (Original Design: Centered with Float Effect) */}
+          <Link href={session ? '/dashboard' : '/'} className="hover:opacity-90 transition-opacity flex items-center justify-center my-auto">
+            <Logo size="md" />
+          </Link>
+
+          {/* Right Controls */}
+          {session ? (
+            <div className="flex items-center space-x-3">
+              {/* Notifications Button */}
               <Link
                 href="/notifications"
-                className="relative p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors"
+                className="relative p-2 rounded-xl text-slate-300 hover:text-white hover:bg-[#1C2B4A]/60 transition-colors"
                 aria-label="Notifications"
               >
                 <Bell className="w-5 h-5" />
@@ -115,7 +106,7 @@ export function Navbar() {
                 )}
               </Link>
 
-              {/* User Profile Avatar Dropdown */}
+              {/* User Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
@@ -143,34 +134,39 @@ export function Navbar() {
                     className="absolute right-0 mt-2 w-56 bg-[#16223B] rounded-2xl py-2 shadow-2xl border border-slate-700 z-50 animate-in fade-in slide-in-from-top-2"
                     onMouseLeave={() => setUserDropdownOpen(false)}
                   >
-                    <div className="px-4 py-2.5 border-b border-slate-700/80">
+                    <div className="px-4 py-2 border-b border-slate-800">
                       <p className="text-xs font-bold text-white truncate">{user?.name}</p>
-                      <p className="text-[10px] text-slate-400 truncate">{user?.email}</p>
+                      <p className="text-[11px] text-slate-400 truncate">{user?.email}</p>
+                      <div className="mt-1 flex items-center space-x-2">
+                        <Badge variant={user?.kycStatus === 'APPROVED' ? 'success' : 'warning'} size="sm">
+                          {user?.kycStatus === 'APPROVED' ? 'KYC Verified' : 'Unverified'}
+                        </Badge>
+                      </div>
                     </div>
 
                     <Link
                       href="/settings"
-                      className="flex items-center space-x-2.5 px-4 py-2 text-xs text-slate-200 hover:bg-slate-700/50 hover:text-white"
                       onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center space-x-2.5 px-4 py-2 text-xs text-slate-300 hover:text-white hover:bg-[#1C2B4A]/60"
                     >
                       <Settings className="w-4 h-4 text-[#6EB7FF]" />
                       <span>Profile & Settings</span>
                     </Link>
 
-                    {user?.role === 'ADMIN' && (
+                    {isAdmin && (
                       <Link
                         href="/admin"
-                        className="flex items-center space-x-2.5 px-4 py-2 text-xs text-purple-400 hover:bg-slate-700/50 hover:text-purple-300 font-bold"
                         onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center space-x-2.5 px-4 py-2 text-xs text-amber-400 hover:text-amber-300 hover:bg-[#1C2B4A]/60 font-bold"
                       >
                         <ShieldAlert className="w-4 h-4" />
-                        <span>Admin Console</span>
+                        <span>Admin Control Panel</span>
                       </Link>
                     )}
 
                     <button
                       onClick={() => signOut({ callbackUrl: '/auth/login' })}
-                      className="w-full flex items-center space-x-2.5 px-4 py-2 text-xs text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 font-medium text-left border-t border-slate-700/80 mt-1"
+                      className="w-full flex items-center space-x-2.5 px-4 py-2 text-xs text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 text-left border-t border-slate-800/80 mt-1"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Sign Out</span>
@@ -178,7 +174,7 @@ export function Navbar() {
                   </div>
                 )}
               </div>
-            </>
+            </div>
           ) : (
             <div className="flex items-center space-x-2">
               <Link href="/auth/login">
@@ -193,3 +189,5 @@ export function Navbar() {
     </header>
   );
 }
+
+export default Navbar;
