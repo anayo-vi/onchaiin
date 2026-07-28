@@ -213,19 +213,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Status Pills */}
-        <div className="grid grid-cols-2 gap-3.5">
-          <div className="p-3.5 rounded-2xl bg-emerald-500/5 border border-emerald-500/40 space-y-1">
-            <p className="text-xs text-slate-400 font-medium">Available</p>
-            <p className="text-sm font-black text-emerald-400 uppercase tracking-wider">UNLOCKED</p>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-[#1C2B4A]/60 border border-slate-700 space-y-1">
-            <p className="text-xs text-slate-400 font-medium">Wallets</p>
-            <p className="text-sm font-bold text-[#6EB7FF] tracking-tight">
-              {loadingProfile ? '…' : `${userWallets.length} active`}
-            </p>
-          </div>
+        {/* Status Pill */}
+        <div className="p-3.5 rounded-2xl bg-emerald-500/5 border border-emerald-500/40 space-y-1">
+          <p className="text-xs text-slate-400 font-medium">Available</p>
+          <p className="text-sm font-black text-emerald-400 uppercase tracking-wider">UNLOCKED</p>
         </div>
 
         {/* Deposit & Withdraw Buttons */}
