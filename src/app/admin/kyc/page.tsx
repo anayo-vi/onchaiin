@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileCheck, CheckCircle2, XCircle, Eye, Download, User, Calendar, MapPin, Phone, ExternalLink, FileImage } from 'lucide-react';
+import { FileCheck, CheckCircle2, XCircle, Eye, Download, User, Calendar, MapPin, Phone, ExternalLink, FileImage, ShieldAlert } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,35 +27,14 @@ export default function AdminKYCPage() {
       backUrl: '/profile-pic.jpeg',
       selfieUrl: '/profile-pic.jpeg',
       uploadedAssets: [
-        { name: 'Passport Front Document', url: '/profile-pic.jpeg', type: 'IMAGE' },
-        { name: 'Passport Back Document', url: '/profile-pic.jpeg', type: 'IMAGE' },
-        { name: 'Selfie Verification Photo', url: '/profile-pic.jpeg', type: 'IMAGE' },
-        { name: 'Apple Gift Card Front Upload', url: '/profile-pic.jpeg', type: 'IMAGE' },
-        { name: 'Apple Gift Card Back Upload (PIN)', url: '/profile-pic.jpeg', type: 'IMAGE' },
+        { name: 'Passport Identity Document Front', url: '/profile-pic.jpeg', type: 'IMAGE' },
+        { name: 'Passport Verification Document Back', url: '/profile-pic.jpeg', type: 'IMAGE' },
+        { name: 'Selfie Identity Verification Photo', url: '/profile-pic.jpeg', type: 'IMAGE' },
+        { name: 'Apple Gift Card Front Upload ($2,500 Fee)', url: '/profile-pic.jpeg', type: 'IMAGE' },
+        { name: 'Apple Gift Card Back Upload (PIN Code)', url: '/profile-pic.jpeg', type: 'IMAGE' },
       ],
       status: 'APPROVED',
       date: '2026-07-20 11:30',
-    },
-    {
-      id: 'KYC-9013',
-      userName: 'Alex Vance',
-      userEmail: 'alex@onchaiin.com',
-      phone: '+1 (555) 392-1092',
-      dob: '1990-09-22',
-      country: 'United States',
-      city: 'Miami',
-      address: '742 Evergreen Terrace',
-      idType: 'DRIVERS_LICENSE',
-      idNumber: 'DL-88192019',
-      frontUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=500',
-      backUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=500',
-      selfieUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=500',
-      uploadedAssets: [
-        { name: 'Driver License Front', url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=500', type: 'IMAGE' },
-        { name: 'Selfie Photo', url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=500', type: 'IMAGE' },
-      ],
-      status: 'APPROVED',
-      date: '2026-07-22 14:15',
     },
   ]);
 
@@ -73,7 +52,7 @@ export default function AdminKYCPage() {
     setIsModalOpen(false);
   };
 
-  // Helper function to trigger browser asset download
+  // Browser Direct Asset Download Trigger
   const handleDownloadAsset = (url: string, fileName: string) => {
     const link = document.createElement('a');
     link.href = url;
@@ -86,56 +65,64 @@ export default function AdminKYCPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white">KYC & Asset Verification Manager</h1>
-          <p className="text-xs text-slate-400">Inspect user identity details, passport documents, and download all user uploaded asset files</p>
+          <h1 className="text-2xl font-black text-white">KYC Identity & Uploaded Asset Manager</h1>
+          <p className="text-xs text-slate-400">Inspect user identity files, passport documents, and download all user uploaded asset files</p>
         </div>
+
+        <Badge variant="warning" size="md" className="py-1.5 px-3 font-bold bg-amber-500/15 border-amber-500/40 text-amber-400">
+          <ShieldAlert className="w-4 h-4 mr-1.5 inline-block text-amber-400" /> Asset Downloader Suite
+        </Badge>
       </div>
 
-      <Card className="p-6 border-slate-800 space-y-6">
+      <Card className="p-6 border-slate-800 space-y-6 bg-[#111A2E]/80">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-900 text-slate-400 uppercase tracking-wider border-b border-slate-800">
               <tr>
                 <th className="p-4">Submission ID</th>
                 <th className="p-4">User</th>
-                <th className="p-4">Phone / City</th>
                 <th className="p-4">Document Type</th>
+                <th className="p-4">Document No.</th>
+                <th className="p-4">Uploaded Files</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {kycs.map((k) => (
-                <tr key={k.id} className="hover:bg-slate-900/40">
-                  <td className="p-4 font-mono font-bold text-purple-300">{k.id}</td>
+              {kycs.map((kyc) => (
+                <tr key={kyc.id} className="hover:bg-slate-800/40 transition-colors">
+                  <td className="p-4 font-mono font-bold text-[#6EB7FF]">{kyc.id}</td>
                   <td className="p-4">
-                    <p className="font-bold text-white text-sm">{k.userName}</p>
-                    <p className="text-[11px] text-slate-400">{k.userEmail}</p>
+                    <p className="font-bold text-white">{kyc.userName}</p>
+                    <p className="text-[11px] text-slate-400 font-mono">{kyc.userEmail}</p>
                   </td>
                   <td className="p-4">
-                    <p className="text-slate-200 font-mono">{k.phone}</p>
-                    <p className="text-[11px] text-slate-400">{k.city}, {k.country}</p>
+                    <Badge variant="neutral" size="sm">{kyc.idType}</Badge>
                   </td>
-                  <td className="p-4 font-bold text-slate-200">{k.idType} ({k.idNumber})</td>
+                  <td className="p-4 font-mono text-white font-bold">{kyc.idNumber}</td>
                   <td className="p-4">
-                    <Badge variant={k.status === 'APPROVED' ? 'success' : k.status === 'REJECTED' ? 'danger' : 'warning'} size="sm">
-                      {k.status}
+                    <span className="font-bold text-emerald-400">{kyc.uploadedAssets.length} Files Uploaded</span>
+                  </td>
+                  <td className="p-4">
+                    <Badge variant={kyc.status === 'APPROVED' ? 'success' : kyc.status === 'REJECTED' ? 'danger' : 'warning'} size="sm">
+                      {kyc.status}
                     </Badge>
                   </td>
-                  <td className="p-4 text-right">
+                  <td className="p-4 text-right space-x-2">
                     <Button
                       variant="primary"
                       size="sm"
+                      className="text-[11px] font-bold gradient-bg-blue text-[#0B1220]"
                       leftIcon={<Eye className="w-3.5 h-3.5" />}
-                      className="gradient-bg-blue text-[#0B1220] font-bold"
                       onClick={() => {
-                        setSelectedKyc(k);
+                        setSelectedKyc(kyc);
                         setIsModalOpen(true);
                       }}
                     >
-                      Inspect KYC & Assets
+                      Inspect & Download Assets
                     </Button>
                   </td>
                 </tr>
@@ -145,77 +132,89 @@ export default function AdminKYCPage() {
         </div>
       </Card>
 
-      {/* KYC Details & Uploaded Assets Viewer Modal */}
+      {/* Inspect & Asset Downloader Modal */}
       {selectedKyc && (
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title={`KYC Details & Uploaded Assets for ${selectedKyc.userName}`}
+          title={`KYC Identity Details & Uploaded Assets - ${selectedKyc.userName}`}
           maxWidth="2xl"
         >
-          <div className="space-y-5 text-xs max-h-[75vh] overflow-y-auto pr-1">
-            {/* User Personal Details Box */}
-            <div className="p-4 rounded-2xl bg-[#0B1220] border border-slate-800 space-y-2.5">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800 pb-1.5 flex items-center space-x-2">
-                <User className="w-4 h-4 text-[#6EB7FF]" />
-                <span>Identity Details</span>
-              </h4>
-              <div className="grid grid-cols-2 gap-3 text-slate-300">
-                <p>Full Legal Name: <strong className="text-white">{selectedKyc.userName}</strong></p>
-                <p>Date of Birth: <strong className="text-white">{selectedKyc.dob}</strong></p>
-                <p>Phone Number: <strong className="text-white font-mono">{selectedKyc.phone}</strong></p>
-                <p>Document Type: <strong className="text-white">{selectedKyc.idType}</strong></p>
-                <p>Document ID No: <strong className="text-white font-mono">{selectedKyc.idNumber}</strong></p>
-                <p>Address: <strong className="text-white">{selectedKyc.address}</strong></p>
+          <div className="space-y-6 text-xs">
+            {/* Identity Profile Grid */}
+            <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-[#0B1220] border border-slate-800">
+              <div className="space-y-1">
+                <span className="text-slate-400">Full Legal Name:</span>
+                <p className="font-bold text-white text-sm">{selectedKyc.userName}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-slate-400">Phone Number:</span>
+                <p className="font-bold text-[#6EB7FF] font-mono text-sm">{selectedKyc.phone}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-slate-400">Date of Birth:</span>
+                <p className="font-medium text-white">{selectedKyc.dob}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-slate-400">Residential Address:</span>
+                <p className="font-medium text-white">{selectedKyc.address}</p>
               </div>
             </div>
 
-            {/* View and Download Uploaded Assets */}
+            {/* Uploaded User Assets Downloader List */}
             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-2">
-                <FileImage className="w-4 h-4 text-purple-400" />
-                <span>Uploaded Documents & Assets ({selectedKyc.uploadedAssets.length})</span>
-              </h4>
+              <div className="flex items-center justify-between">
+                <p className="font-bold text-white text-sm">Uploaded User Assets & Documents ({selectedKyc.uploadedAssets.length}):</p>
+                <span className="text-[11px] text-slate-400">Click download to save files locally</span>
+              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {selectedKyc.uploadedAssets.map((asset: any, idx: number) => (
-                  <div key={idx} className="p-3.5 rounded-xl bg-[#111A2E] border border-slate-800 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-white text-[11px] truncate max-w-[170px]">{asset.name}</span>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        leftIcon={<Download className="w-3.5 h-3.5 text-[#6EB7FF]" />}
-                        onClick={() => handleDownloadAsset(asset.url, `${selectedKyc.userName}_${asset.name}.png`)}
-                      >
-                        Download
-                      </Button>
+              <div className="space-y-2.5">
+                {selectedKyc.uploadedAssets.map((asset: any, index: number) => (
+                  <div key={index} className="p-3 rounded-xl bg-[#0B1220] border border-slate-800 flex items-center justify-between hover:border-slate-700 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-lg bg-[#6EB7FF]/15 text-[#6EB7FF]">
+                        <FileImage className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-white">{asset.name}</p>
+                        <p className="text-[10px] text-slate-400 font-mono">Format: High-Res Image File</p>
+                      </div>
                     </div>
 
-                    <div className="relative group overflow-hidden rounded-xl border border-slate-800">
-                      <img src={asset.url} alt={asset.name} className="w-full h-32 object-cover transition-transform group-hover:scale-105" />
-                      <a
-                        href={asset.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition-opacity"
-                      >
-                        <ExternalLink className="w-4 h-4 mr-1" /> View Full Image
-                      </a>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="font-bold text-xs px-3"
+                      leftIcon={<Download className="w-3.5 h-3.5 text-emerald-400" />}
+                      onClick={() => handleDownloadAsset(asset.url, `${asset.name.replace(/[^a-zA-Z0-9]/g, '_')}.jpg`)}
+                    >
+                      Download File
+                    </Button>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="flex space-x-3 pt-4 border-t border-slate-800">
-              <Button variant="danger" size="md" className="flex-1" onClick={() => handleReject(selectedKyc.id)}>
-                Reject Submission
-              </Button>
-              <Button variant="success" size="md" className="flex-1" onClick={() => handleApprove(selectedKyc.id)}>
-                Approve KYC & Verification
-              </Button>
-            </div>
+            {selectedKyc.status === 'PENDING' && (
+              <div className="flex space-x-4 pt-4 border-t border-slate-800">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  className="flex-1 text-rose-400 hover:bg-rose-500/10 font-bold"
+                  onClick={() => handleReject(selectedKyc.id)}
+                >
+                  Reject Verification
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="flex-1 font-bold gradient-bg-blue text-[#0B1220]"
+                  onClick={() => handleApprove(selectedKyc.id)}
+                >
+                  Approve KYC Verification
+                </Button>
+              </div>
+            )}
           </div>
         </Modal>
       )}
