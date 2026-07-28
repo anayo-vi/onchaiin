@@ -12,19 +12,25 @@ export default function SettingsPage() {
   const { data: session, update } = useSession();
   const user = session?.user as any;
 
-  const [avatar, setAvatar] = useState(user?.avatar || '/profile-pic.jpeg');
-  const [name, setName] = useState(user?.name || 'Leo Garcia Arthur');
-  const [phone, setPhone] = useState('+1 (505) 730-8886');
-  const [country, setCountry] = useState('United States');
-  const [city, setCity] = useState('New Mexico');
+  const [avatar, setAvatar] = useState<string>('/profile-pic.jpeg');
+  const [name, setName] = useState<string>('Leo Garcia Arthur');
+  const [phone, setPhone] = useState<string>('+1 (505) 730-8886');
+  const [country, setCountry] = useState<string>('United States');
+  const [city, setCity] = useState<string>('New Mexico');
   
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  // Synchronize initial state when session loads
+  // Synchronize initial state from localStorage & session
   useEffect(() => {
-    if (user?.avatar) setAvatar(user.avatar);
+    const storedAvatar = typeof window !== 'undefined' ? localStorage.getItem('user_avatar') : null;
+    if (storedAvatar) {
+      setAvatar(storedAvatar);
+    } else if (user?.avatar && !user.avatar.includes('unsplash.com')) {
+      setAvatar(user.avatar);
+    }
+
     if (user?.name) setName(user.name);
   }, [user?.avatar, user?.name]);
 
@@ -34,38 +40,52 @@ export default function SettingsPage() {
     if (file) {
       setIsUploading(true);
 
-      // Instant local preview
+      // Instant local preview via Data URL
       const reader = new FileReader();
-      reader.onloadend = () => setAvatar(reader.result as string);
+      reader.onloadend = async () => {
+        const localDataUrl = reader.result as string;
+        
+        // Immediately save user's uploaded picture locally so it never resets
+        setAvatar(localDataUrl);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user_avatar', localDataUrl);
+        }
+
+        try {
+          // Upload to Supabase Storage bucket via /api/upload
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('bucket', 'avatars');
+
+          const res = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
+          const data = await res.json();
+
+          // Use server URL if valid and not an unsplash fallback
+          const finalUrl = (data?.url && !data.url.includes('unsplash.com')) ? data.url : localDataUrl;
+          
+          setAvatar(finalUrl);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('user_avatar', finalUrl);
+          }
+
+          // Update NextAuth session in real time across the entire application
+          await update({
+            name,
+            avatar: finalUrl,
+          });
+
+          console.log('✅ Real-time profile picture updated across session:', finalUrl);
+        } catch (err) {
+          console.warn('Real-time profile upload warning:', err);
+        } finally {
+          setIsUploading(false);
+        }
+      };
+
       reader.readAsDataURL(file);
-
-      try {
-        // Upload to Supabase Storage bucket via /api/upload
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('bucket', 'avatars');
-
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        const data = await res.json();
-
-        const uploadedUrl = data?.url || reader.result as string;
-        setAvatar(uploadedUrl);
-
-        // Instantly update NextAuth session in real time across the entire application
-        await update({
-          name,
-          avatar: uploadedUrl,
-        });
-
-        console.log('✅ Real-time profile picture updated across session:', uploadedUrl);
-      } catch (err) {
-        console.warn('Real-time profile upload warning:', err);
-      } finally {
-        setIsUploading(false);
-      }
     }
   };
 
@@ -75,6 +95,10 @@ export default function SettingsPage() {
     setIsSaving(true);
 
     try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user_avatar', avatar);
+      }
+
       // Update NextAuth Session in real time (Navbar, Dashboard, Header)
       await update({
         name,

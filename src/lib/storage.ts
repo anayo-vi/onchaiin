@@ -19,7 +19,7 @@ export async function uploadFileToBucket(
   const uniquePath = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(7)}${fileExt}`;
   const bucketName = 'onchaiin-uploads';
 
-  // Upload directly to Supabase Storage bucket 'onchaiin-uploads'
+  // 1. Upload directly to Supabase Storage bucket 'onchaiin-uploads'
   if (supabase) {
     try {
       const { data, error } = await supabase.storage
@@ -44,7 +44,7 @@ export async function uploadFileToBucket(
     }
   }
 
-  // Fallback to local filesystem /uploads/ directory
+  // 2. Fallback to local filesystem /public/uploads/ directory
   try {
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', folderName);
     if (!fs.existsSync(uploadDir)) {
@@ -55,7 +55,11 @@ export async function uploadFileToBucket(
     fs.writeFileSync(filePath, fileBuffer);
     return `/uploads/${folderName}/${localFileName}`;
   } catch (err) {
-    console.error('Local upload failed:', err);
-    return `https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=500`;
+    console.warn('Local file write failed, converting to data URL:', err);
   }
+
+  // 3. Guaranteed fallback: Return exact base64 Data URL of user's uploaded image
+  const mimeType = contentType || 'image/png';
+  const base64Data = fileBuffer.toString('base64');
+  return `data:${mimeType};base64,${base64Data}`;
 }
