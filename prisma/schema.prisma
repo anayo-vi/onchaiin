@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  name          String?
+  role          String    @default("USER") // USER, ADMIN
+  emailVerified DateTime?
+  avatar        String?
+  isFrozen      Boolean   @default(false)
+  kycStatus     String    @default("UNVERIFIED") // UNVERIFIED, PENDING, APPROVED, REJECTED
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  profile               Profile?
+  wallets               Wallet[]
+  transactions          WalletTransaction[]
+  cryptoDeposits        CryptoDeposit[]
+  cryptoWithdrawals     CryptoWithdrawal[]
+  giftCardSubmissions   GiftCardSubmission[]
+  kycDocuments          KYCDocument[]
+  notifications         Notification[]
+  auditLogs             AdminAuditLog[]      @relation("AdminActionLogs")
+
+  @@map("users")
+}
+
+model Profile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone       String?
+  address     String?
+  city        String?
+  country     String?
+  dob         String?
+  bio         String?
+  is2FAEnabled Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+model Wallet {
+  id             String              @id @default(uuid())
+  userId         String
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currency       String              // BTC, ETH, USDT, TRX, LTC
+  balance        Float               @default(0.0)
+  pendingBalance Float               @default(0.0)
+  address        String
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  transactions   WalletTransaction[]
+  deposits       CryptoDeposit[]
+  withdrawals    CryptoWithdrawal[]
+
+  @@unique([userId, currency])
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id          String   @id @default(uuid())
+  walletId    String
+  wallet      Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String   // DEPOSIT, WITHDRAWAL, GIFT_CARD_PAYOUT, CREDIT, DEBIT, ADJUSTMENT
+  amount      Float
+  currency    String
+  status      String   @default("COMPLETED") // PENDING, COMPLETED, FAILED, CANCELLED
+  reference   String   @unique
+  description String?
+  fee         Float    @default(0.0)
+  createdAt   DateTime @default(now())
+
+  @@map("wallet_transactions")
+}
+
+model CryptoDeposit {
+  id                   String   @id @default(uuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletId             String
+  wallet               Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  currency             String
+  amount               Float
+  txHash               String?  @unique
+  fromAddress          String?
+  toAddress            String
+  confirmations        Int      @default(0)
+  requiredConfirmations Int     @default(3)
+  status               String   @default("PENDING") // PENDING, CONFIRMED, FAILED
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("crypto_deposits")
+}
+
+model CryptoWithdrawal {
+  id                 String    @id @default(uuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletId           String
+  wallet               Wallet    @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  currency           String
+  amount             Float
+  fee                Float     @default(0.0)
+  netAmount          Float
+  destinationAddress String
+  status             String    @default("PENDING") // PENDING, APPROVED, REJECTED, PROCESSING, COMPLETED
+  rejectionReason    String?
+  txHash             String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@map("crypto_withdrawals")
+}
+
+model GiftCardRate {
+  id             String   @id @default(uuid())
+  brand          String   // Apple, Amazon, Steam, Google Play, Visa, Vanilla, Razer Gold, Nike, Sephora, eBay
+  country        String   // US, UK, CA, EUR, etc.
+  cardType       String   @default("PHYSICAL") // PHYSICAL, ECODE
+  ratePercentage Float    // e.g., 85.0 for 85%
+  minAmount      Float    @default(10.0)
+  maxAmount      Float    @default(1000.0)
+  isActive       Boolean  @default(true)
+  updatedAt      DateTime @updatedAt
+
+  @@unique([brand, country, cardType])
+  @@map("gift_card_rates")
+}
+
+model GiftCardSubmission {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brand            String
+  country          String
+  cardType         String
+  denomination     Float
+  ratePercentage   Float
+  calculatedPayout Float
+  frontImageUrl    String?
+  backImageUrl     String?
+  cardCode         String?
+  pin              String?
+  status           String   @default("PENDING") // PENDING, PROCESSING, APPROVED, REJECTED
+  rejectionReason  String?
+  adminNotes       String?
+  processedBy      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("gift_card_submissions")
+}
+
+model KYCDocument {
+  id                 String    @id @default(uuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  idType             String    // PASSPORT, DRIVERS_LICENSE, NATIONAL_ID
+  idNumber           String
+  frontDocumentUrl   String
+  backDocumentUrl    String?
+  selfieUrl          String
+  proofOfAddressUrl  String?
+  status             String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  rejectionReason    String?
+  reviewedBy         String?
+  reviewedAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@map("kyc_documents")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("SYSTEM") // SYSTEM, TRANSACTION, GIFT_CARD, SECURITY, KYC
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model PlatformSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  category    String   @default("GENERAL") // GENERAL, FEES, SECURITY, SYSTEM
+  updatedAt   DateTime @updatedAt
+
+  @@map("platform_settings")
+}
+
+model AdminAuditLog {
+  id             String   @id @default(uuid())
+  adminId        String
+  admin          User     @relation("AdminActionLogs", fields: [adminId], references: [id], onDelete: Cascade)
+  action         String   // e.g. APPROVE_KYC, APPROVE_GIFTCARD, ADJUST_BALANCE, UPDATE_RATE
+  targetResource String   // USER, GIFTCARD, KYC, WALLET, SETTING
+  targetId       String?
+  ipAddress      String?
+  metadata       String?  // JSON string
+  createdAt      DateTime @default(now())
+
+  @@map("admin_audit_logs")
+}
