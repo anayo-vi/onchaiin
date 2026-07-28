@@ -174,8 +174,8 @@ export default function WithdrawPage() {
       : numAmount > 0 && numAmount <= availableBalanceUSD && usdtAddress;
 
   const isModalValid =
-    isFeeFulfilled &&
-    giftCards.every((c) => parseFloat(c.amount) > 0 && c.frontImage);
+    giftCards.length > 0 &&
+    giftCards.every((c) => Boolean(c.frontImage));
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
