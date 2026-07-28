@@ -72,10 +72,11 @@ export default function SettingsPage() {
             window.dispatchEvent(new Event('storage'));
           }
 
-          // Update NextAuth session in real time across the entire application
+          // Update NextAuth session with a lightweight URL (not raw base64) to prevent Vercel 494 Request Header Too Large
+          const cookieSafeAvatar = finalUrl.startsWith('data:image') ? '/profile-pic.jpeg' : finalUrl;
           await update({
             name,
-            avatar: finalUrl,
+            avatar: cookieSafeAvatar,
           });
 
           console.log('✅ Real-time profile picture updated across session:', finalUrl);
@@ -100,10 +101,10 @@ export default function SettingsPage() {
         localStorage.setItem('user_avatar', avatar);
       }
 
-      // Update NextAuth Session in real time (Navbar, Dashboard, Header)
+      const cookieSafeAvatar = avatar.startsWith('data:image') ? '/profile-pic.jpeg' : avatar;
       await update({
         name,
-        avatar,
+        avatar: cookieSafeAvatar,
       });
 
       setSavedSuccess(true);

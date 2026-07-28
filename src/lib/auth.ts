@@ -70,13 +70,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = (user as any).role || 'USER';
-        token.avatar = (user as any).avatar;
+        let av = (user as any).avatar || '/profile-pic.jpeg';
+        if (typeof av === 'string' && av.startsWith('data:image')) av = '/profile-pic.jpeg';
+        token.avatar = av;
         token.kycStatus = (user as any).kycStatus || 'UNVERIFIED';
       }
       if (trigger === 'update' && session) {
         token.name = session.name || token.name;
-        token.avatar = session.avatar || token.avatar;
+        if (session.avatar && typeof session.avatar === 'string' && !session.avatar.startsWith('data:image')) {
+          token.avatar = session.avatar;
+        }
         token.kycStatus = session.kycStatus || token.kycStatus;
+      }
+      if (token.avatar && typeof token.avatar === 'string' && token.avatar.startsWith('data:image')) {
+        token.avatar = '/profile-pic.jpeg';
       }
       return token;
     },
