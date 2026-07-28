@@ -8,7 +8,7 @@ import {
   LayoutDashboard, 
   Wallet, 
   Gift, 
-  FileCheck, 
+  ReceiptText,
   User,
   ShieldAlert
 } from 'lucide-react';
@@ -22,20 +22,28 @@ export const MobileBottomNav: React.FC = () => {
   const user = session.user as any;
   const isAdmin = user?.role === 'ADMIN';
 
-  const navItems = [
-    { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
-    { href: '/wallet', label: 'Wallet', icon: Wallet },
-    { href: '/gift-cards', label: 'Trade', icon: Gift },
-    { href: '/kyc', label: 'KYC', icon: FileCheck },
-    { href: isAdmin ? '/admin' : '/settings', label: isAdmin ? 'Admin' : 'Profile', icon: isAdmin ? ShieldAlert : User },
-  ];
+  const navItems = isAdmin
+    ? [
+        { href: '/admin', label: 'Overview', icon: ShieldAlert },
+        { href: '/admin/users', label: 'Users', icon: User },
+        { href: '/admin/gift-cards/submissions', label: 'Gift Cards', icon: Gift },
+        { href: '/admin/kyc', label: 'KYC', icon: ReceiptText },
+        { href: '/settings', label: 'Profile', icon: User },
+      ]
+    : [
+        { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
+        { href: '/wallet', label: 'Wallet', icon: Wallet },
+        { href: '/gift-cards', label: 'Trade', icon: Gift },
+        { href: '/transactions', label: 'History', icon: ReceiptText },
+        { href: '/settings', label: 'Profile', icon: User },
+      ];
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass-card bg-[#111A2E]/95 border-t border-slate-800/90 backdrop-blur-2xl px-2 py-2">
       <div className="flex items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+          const isActive = pathname === item.href || (item.href !== '/dashboard' && item.href !== '/admin' && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}
