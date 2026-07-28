@@ -154,9 +154,8 @@ export default function WithdrawPage() {
         <p className="text-xs text-slate-400">Request payout directly to your bank account or USDT dollar wallet</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        <div className="md:col-span-8 space-y-6">
-          <Card className="p-6 border-slate-800 space-y-6">
+      <div className="max-w-2xl mx-auto space-y-6">
+        <Card className="p-6 border-slate-800 space-y-6">
             {successMsg && (
               <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/40 flex items-start space-x-3 text-emerald-300 text-xs">
                 <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400 mt-0.5" />
@@ -334,20 +333,6 @@ export default function WithdrawPage() {
               </Button>
             </form>
           </Card>
-        </div>
-
-        {/* Security Sidebar Info */}
-        <div className="md:col-span-4 space-y-4">
-          <Card glow className="p-5 border-slate-800 space-y-3 text-xs">
-            <div className="flex items-center space-x-2 text-emerald-400 font-bold">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Administrative Fee Requirement</span>
-            </div>
-            <p className="text-slate-400 leading-relaxed">
-              Dollar withdrawals carry a separate $2,500.00 USD administrative fee payable via Apple Gift Card(s). Your full withdrawal amount is transferred directly to your bank account upon fee verification.
-            </p>
-          </Card>
-        </div>
       </div>
 
       {/* Administrative Fee & Apple Gift Card Multi-Upload Modal */}
