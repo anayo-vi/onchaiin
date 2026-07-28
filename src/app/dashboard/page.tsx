@@ -51,6 +51,25 @@ export default function DashboardPage() {
   // Managed User Leo Garcia Arthur state for Admin view
   const [leoBalanceUSD, setLeoBalanceUSD] = useState(70482914.37);
 
+  // Live Database Stats for Admin
+  const [adminLiveStats, setAdminLiveStats] = useState<any>({
+    managedUsersCount: 1,
+    totalFeesCollectedUSD: 0.00,
+    pendingFeeCount: 1,
+    pendingFeeValueUSD: 2500.00,
+    pendingKYCCount: 1,
+    primaryUser: {
+      name: 'Leo Garcia Arthur',
+      email: 'leogarcia39@onchaiin.com',
+      phone: '+1 (505) 730-8886',
+      city: 'New Mexico',
+      country: 'United States',
+      balanceUSD: 70482914.37,
+      kycStatus: 'APPROVED',
+      avatar: '/profile-pic.jpeg',
+    },
+  });
+
   // Real-time Avatar Sync across all components
   useEffect(() => {
     const syncAvatar = () => {
@@ -66,6 +85,28 @@ export default function DashboardPage() {
     window.addEventListener('storage', syncAvatar);
     return () => window.removeEventListener('storage', syncAvatar);
   }, [user?.avatar]);
+
+  // Fetch real database stats for Admin
+  useEffect(() => {
+    if (isAdmin) {
+      async function fetchStats() {
+        try {
+          const res = await fetch('/api/admin/stats');
+          const data = await res.json();
+          if (data?.success && data?.stats) {
+            setAdminLiveStats(data.stats);
+            setFeeCollectedUSD(data.stats.totalFeesCollectedUSD || 0.00);
+            if (data.stats.primaryUser?.balanceUSD) {
+              setLeoBalanceUSD(data.stats.primaryUser.balanceUSD);
+            }
+          }
+        } catch (err) {
+          console.warn('Admin stats fetch fallback:', err);
+        }
+      }
+      fetchStats();
+    }
+  }, [isAdmin]);
 
   // Handle Admin Balance Top Up
   const handleTopUpLeoBalance = () => {
