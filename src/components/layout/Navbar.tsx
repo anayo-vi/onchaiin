@@ -46,13 +46,19 @@ export function Navbar() {
     return () => window.removeEventListener('storage', syncAvatar);
   }, [user?.avatar]);
 
-  const navLinks = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/wallet', label: 'Wallet', icon: Wallet },
-    { href: '/gift-cards', label: 'Gift Cards', icon: Gift },
-    { href: '/kyc', label: 'KYC', icon: FileCheck },
-    ...(isAdmin ? [{ href: '/admin', label: 'Admin Portal', icon: ShieldAlert }] : []),
-  ];
+  const navLinks = isAdmin
+    ? [
+        { href: '/dashboard', label: 'Admin Dashboard', icon: ShieldAlert },
+        { href: '/admin/users', label: 'User Management', icon: User },
+        { href: '/admin/kyc', label: 'KYC & Assets', icon: FileCheck },
+        { href: '/admin/settings', label: 'Fee Settings', icon: Settings },
+      ]
+    : [
+        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/wallet', label: 'Wallet', icon: Wallet },
+        { href: '/gift-cards', label: 'Gift Cards', icon: Gift },
+        { href: '/kyc', label: 'KYC', icon: FileCheck },
+      ];
 
   return (
     <header className="sticky top-0 z-40 w-full glass-card border-b border-slate-800/80 bg-[#111A2E]/90 backdrop-blur-xl">
