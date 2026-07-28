@@ -137,7 +137,7 @@ export default function SettingsPage() {
                   <Badge variant="success" size="sm">KYC Verified</Badge>
                 </div>
                 <p className="text-xs text-slate-400">
-                  Allowed formats: PNG, JPG, JPEG or WEBP (Max 5MB)
+                  Allowed formats: PNG, JPG, JPEG or WEBP (Max 50MB)
                 </p>
                 <label
                   htmlFor="avatar-upload-input"
