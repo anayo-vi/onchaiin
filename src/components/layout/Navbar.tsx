@@ -55,6 +55,7 @@ export function Navbar() {
         { href: '/admin/users', label: 'User Management', icon: User },
         { href: '/admin/kyc', label: 'KYC & Assets', icon: FileCheck },
         { href: '/admin/settings', label: 'Fee Settings', icon: Settings },
+        { href: '/settings', label: 'Admin Profile', icon: User },
       ]
     : [
         { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },

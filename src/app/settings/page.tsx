@@ -22,8 +22,29 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  // Synchronize initial state from localStorage & session
+  // Synchronize initial state from live PostgreSQL database & session
   useEffect(() => {
+    async function loadProfile() {
+      try {
+        const res = await fetch('/api/user/profile');
+        const data = await res.json();
+        if (data?.success && data?.user) {
+          const u = data.user;
+          if (u.name) setName(u.name);
+          if (u.avatar && !u.avatar.includes('unsplash.com')) {
+            setAvatar(u.avatar);
+          }
+          if (u.profile) {
+            if (u.profile.phone) setPhone(u.profile.phone);
+            if (u.profile.city) setCity(u.profile.city);
+            if (u.profile.country) setCountry(u.profile.country);
+          }
+        }
+      } catch (err) {
+        console.warn('Profile fetch fallback:', err);
+      }
+    }
+
     const storedAvatar = typeof window !== 'undefined' ? localStorage.getItem('user_avatar') : null;
     if (storedAvatar) {
       setAvatar(storedAvatar);
@@ -32,6 +53,7 @@ export default function SettingsPage() {
     }
 
     if (user?.name) setName(user.name);
+    loadProfile();
   }, [user?.avatar, user?.name]);
 
   // Real-time Profile Picture File Upload Handler
