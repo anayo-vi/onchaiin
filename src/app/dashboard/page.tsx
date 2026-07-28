@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { 
@@ -20,6 +20,24 @@ import { Badge } from '@/components/ui/badge';
 export default function DashboardPage() {
   const { data: session } = useSession();
   const user = session?.user as any;
+
+  const [avatarUrl, setAvatarUrl] = useState<string>('/profile-pic.jpeg');
+
+  // Real-time Avatar Sync across all components
+  useEffect(() => {
+    const syncAvatar = () => {
+      const stored = typeof window !== 'undefined' ? localStorage.getItem('user_avatar') : null;
+      if (stored) {
+        setAvatarUrl(stored);
+      } else if (user?.avatar) {
+        setAvatarUrl(user.avatar);
+      }
+    };
+
+    syncAvatar();
+    window.addEventListener('storage', syncAvatar);
+    return () => window.removeEventListener('storage', syncAvatar);
+  }, [user?.avatar]);
 
   // Real-time market movers watchlist data
   const marketMovers = [
@@ -102,11 +120,11 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-md mx-auto sm:max-w-2xl lg:max-w-4xl px-4 py-6 space-y-6">
-      {/* 1. Header Profile Bar (Mimicking reference layout) */}
+      {/* 1. Header Profile Bar */}
       <div className="flex items-center justify-between pt-2">
         <div className="flex items-center space-x-3.5">
           <img
-            src={user?.avatar || '/profile-pic.jpeg'}
+            src={avatarUrl}
             alt={user?.name || 'Leo Garcia Arthur'}
             className="w-14 h-14 rounded-full object-cover ring-2 ring-[#6EB7FF]/50 shadow-xl"
           />
@@ -180,53 +198,67 @@ export default function DashboardPage() {
       </Card>
 
       {/* 3. Market Movers Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between px-1">
-          <h3 className="text-lg font-bold text-white tracking-tight">Market Movers</h3>
-          <span className="text-xs text-slate-400 font-medium">Top coins to watch</span>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-extrabold text-white flex items-center space-x-2">
+            <TrendingUp className="w-4 h-4 text-[#6EB7FF]" />
+            <span>Live Market Rates</span>
+          </h3>
+          <Link href="/trade" className="text-xs font-bold text-[#6EB7FF] hover:underline flex items-center">
+            Trade Now <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+          </Link>
         </div>
 
-        <div className="space-y-3">
-          {marketMovers.map((coin) => (
-            <div
-              key={coin.symbol}
-              className="glass-card p-4 rounded-2xl border border-slate-800/80 bg-[#111A2E]/80 flex items-center justify-between hover:border-slate-700 transition-all cursor-pointer"
-            >
-              <div className="flex items-center space-x-3.5">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-md ${coin.iconBg}`}>
-                  {coin.icon}
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-white">{coin.name}</h4>
-                  <p className="text-xs text-slate-400 font-mono">
-                    {coin.price} <span className={`font-semibold ${coin.isUp ? 'text-emerald-400' : 'text-rose-400'}`}>{coin.change}</span>
-                  </p>
-                </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          {marketMovers.map((item) => (
+            <Card key={item.symbol} hoverable className="p-3.5 border-slate-800 space-y-2 bg-[#111A2E]/80">
+              <div className="flex items-center justify-between">
+                <span className="text-base">{item.icon}</span>
+                <span className={`text-[11px] font-bold ${item.isUp ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {item.change}
+                </span>
               </div>
-
-              <span className="px-3 py-1 text-xs font-bold text-slate-300 bg-slate-800/80 border border-slate-700 rounded-xl font-mono">
-                {coin.symbol}
-              </span>
-            </div>
+              <div>
+                <p className="text-xs font-bold text-white">{item.symbol}</p>
+                <p className="text-[11px] font-mono text-slate-300 font-bold">{item.price}</p>
+              </div>
+            </Card>
           ))}
         </div>
       </div>
 
-      {/* 4. Quick Gift Card Trade CTA */}
-      <Card glow className="p-6 border-[#6EB7FF]/30 bg-[#16223B]/70 rounded-3xl space-y-4">
-        <div className="flex items-center space-x-2">
-          <Sparkles className="w-5 h-5 text-[#6EB7FF]" />
-          <h3 className="text-sm font-bold text-white">Sell Gift Cards for Instant Crypto</h3>
+      {/* 4. Recent Transactions */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-extrabold text-white">Recent Activity</h3>
+          <Link href="/wallet" className="text-xs font-bold text-[#6EB7FF] hover:underline">
+            View All
+          </Link>
         </div>
-        <p className="text-xs text-slate-300 leading-relaxed">
-          Turn Apple, Amazon, Steam, or Visa gift cards into USDT or BTC balance in under 3 minutes.
-        </p>
-        <Link href="/gift-cards" className="block">
-          <Button variant="primary" size="md" className="w-full font-bold">
-            Trade Gift Card Now (Up to 90% Rate)
-          </Button>
-        </Link>
-      </Card>
+
+        <Card className="p-2 border-slate-800 divide-y divide-slate-800/60 bg-[#111A2E]/80">
+          {transactions.map((tx) => {
+            const Icon = tx.icon;
+            return (
+              <div key={tx.id} className="p-3 flex items-center justify-between hover:bg-slate-800/30 rounded-xl transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2.5 rounded-xl ${tx.iconBg}`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-white">{tx.title}</p>
+                    <p className="text-[10px] text-slate-400">{tx.date}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-mono font-bold text-emerald-400">{tx.amount}</p>
+                  <p className="text-[10px] text-slate-400 font-semibold">{tx.status}</p>
+                </div>
+              </div>
+            );
+          })}
+        </Card>
+      </div>
     </div>
   );
 }

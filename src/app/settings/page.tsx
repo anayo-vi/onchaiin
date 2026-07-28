@@ -69,6 +69,7 @@ export default function SettingsPage() {
           setAvatar(finalUrl);
           if (typeof window !== 'undefined') {
             localStorage.setItem('user_avatar', finalUrl);
+            window.dispatchEvent(new Event('storage'));
           }
 
           // Update NextAuth session in real time across the entire application
