@@ -26,37 +26,8 @@ export default function AdminUsersPage() {
   const [notifCategory, setNotifCategory] = useState<'PROFIT' | 'SECURITY' | 'SYSTEM'>('PROFIT');
   const [notifSuccessMsg, setNotifSuccessMsg] = useState(false);
 
-  // Default database seed users state
-  const [users, setUsers] = useState<any[]>([
-    {
-      id: 'usr-leo',
-      name: 'Leo Garcia Arthur',
-      email: 'leogarcia39@onchaiin.com',
-      role: 'USER',
-      kycStatus: 'APPROVED',
-      isFrozen: false,
-      usdtBalance: 70482914.37,
-      phone: '+1 (505) 730-8886',
-      city: 'New Mexico',
-      country: 'United States',
-      joinedDate: '2026-07-20',
-      avatar: '/profile-pic.jpeg',
-    },
-    {
-      id: 'usr-admin',
-      name: 'Platform Security Admin',
-      email: 'admin@onchaiin.com',
-      role: 'ADMIN',
-      kycStatus: 'APPROVED',
-      isFrozen: false,
-      usdtBalance: 0.00,
-      phone: '+1 (800) 555-ONCHAIIN',
-      city: 'New York',
-      country: 'United States',
-      joinedDate: '2026-07-01',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-    },
-  ]);
+  // Start with empty array — DB data loaded via useEffect below
+  const [users, setUsers] = useState<any[]>([]);
 
   // Fetch live users directly from PostgreSQL database via API
   useEffect(() => {
@@ -84,18 +55,37 @@ export default function AdminUsersPage() {
       u.phone.includes(search)
   );
 
-  // Handle Top Up Execution
-  const handleExecuteTopUp = () => {
+  // Handle Top Up Execution — calls real DB API
+  const handleExecuteTopUp = async () => {
     if (!topUpAmount || !selectedUser) return;
     const addedAmount = parseFloat(topUpAmount) || 0;
+    if (addedAmount <= 0) return;
 
-    setUsers((prevUsers) =>
-      prevUsers.map((u) =>
-        u.id === selectedUser.id
-          ? { ...u, usdtBalance: (u.usdtBalance || 0) + addedAmount }
-          : u
-      )
-    );
+    try {
+      const res = await fetch('/api/admin/users/topup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          email: selectedUser.email,
+          amount: addedAmount,
+        }),
+      });
+      const data = await res.json();
+      if (data?.success) {
+        // Update local state to reflect new balance
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === selectedUser.id
+              ? { ...u, usdtBalance: data.newBalance }
+              : u
+          )
+        );
+        setSelectedUser((prev: any) => prev ? { ...prev, usdtBalance: data.newBalance } : prev);
+      }
+    } catch (err) {
+      console.warn('Top up API error:', err);
+    }
 
     setTopUpSuccessMsg(true);
     setTimeout(() => {
@@ -105,9 +95,24 @@ export default function AdminUsersPage() {
     }, 1500);
   };
 
-  // Handle Send Notification Execution
-  const handleSendNotification = () => {
+  // Handle Send Notification Execution — calls real DB API
+  const handleSendNotification = async () => {
     if (!notifTitle || !notifMessage || !selectedUser) return;
+
+    try {
+      await fetch('/api/admin/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          title: notifTitle,
+          message: notifMessage,
+          category: notifCategory,
+        }),
+      });
+    } catch (err) {
+      console.warn('Notification API error:', err);
+    }
 
     setNotifSuccessMsg(true);
     setTimeout(() => {
