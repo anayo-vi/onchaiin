@@ -33,7 +33,7 @@ export function Navbar() {
   // Public landing/auth pages where standard clean header is displayed
   const isPublicPage = pathname === '/' || pathname === '/auth/login' || pathname.startsWith('/auth/');
 
-  // Real-time Avatar Sync across all components
+  // Real-time Avatar & Profile Sync across all components and page refreshes/focus
   useEffect(() => {
     const syncAvatar = () => {
       const stored = typeof window !== 'undefined' ? localStorage.getItem('user_avatar') : null;
@@ -46,7 +46,11 @@ export function Navbar() {
 
     syncAvatar();
     window.addEventListener('storage', syncAvatar);
-    return () => window.removeEventListener('storage', syncAvatar);
+    window.addEventListener('focus', syncAvatar);
+    return () => {
+      window.removeEventListener('storage', syncAvatar);
+      window.removeEventListener('focus', syncAvatar);
+    };
   }, [user?.avatar]);
 
   const navLinks = isAdmin
