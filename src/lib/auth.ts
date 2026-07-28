@@ -20,6 +20,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const password = String(credentials.password);
 
         // Support full email or simple username (e.g. leogarcia39 -> leogarcia39@onchaiin.com)
+        // Also support just "admin" -> admin@onchaiin.com
         const emailToSearch = inputIdentifier.includes('@')
           ? inputIdentifier
           : `${inputIdentifier}@onchaiin.com`;
@@ -47,6 +48,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error('Your account has been frozen by administration. Please contact support.');
         }
 
+        // Sanitize avatar — base64 data URIs are too large for JWT tokens
         let sanitizedAvatar = user.avatar || '/profile-pic.jpeg';
         if (typeof sanitizedAvatar === 'string' && sanitizedAvatar.startsWith('data:image')) {
           sanitizedAvatar = '/profile-pic.jpeg';
@@ -80,45 +82,37 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
+      // On initial sign-in — populate token from the authorize() return value
       if (user) {
         token.id = user.id;
         token.role = (user as any).role || 'USER';
         token.name = user.name || 'User';
+        token.kycStatus = (user as any).kycStatus || 'UNVERIFIED';
+
         let av = (user as any).avatar || '/profile-pic.jpeg';
         if (typeof av === 'string' && av.startsWith('data:image')) av = '/profile-pic.jpeg';
         token.avatar = av;
-        token.kycStatus = (user as any).kycStatus || 'UNVERIFIED';
       }
 
-      // Always fetch latest profile data & stats from PostgreSQL database on session eval/login
-      if (token?.id) {
-        try {
-          const freshUser = await prisma.user.findUnique({
-            where: { id: token.id as string },
-            select: { name: true, avatar: true, role: true, kycStatus: true },
-          });
-          if (freshUser) {
-            token.name = freshUser.name || token.name;
-            token.role = freshUser.role || token.role;
-            token.kycStatus = freshUser.kycStatus || token.kycStatus;
-            if (freshUser.avatar) {
-              token.avatar = freshUser.avatar;
-            }
-          }
-        } catch (dbErr) {
-          console.warn('JWT fresh user fetch fallback:', dbErr);
-        }
-      }
-
+      // On explicit session update (e.g. profile picture change via useSession().update())
       if (trigger === 'update' && session) {
-        token.name = session.name || token.name;
+        if (session.name) token.name = session.name;
         if (session.avatar) {
-          token.avatar = session.avatar;
+          let newAv = session.avatar;
+          if (typeof newAv === 'string' && newAv.startsWith('data:image')) newAv = '/profile-pic.jpeg';
+          token.avatar = newAv;
         }
-        token.kycStatus = session.kycStatus || token.kycStatus;
+        if (session.kycStatus) token.kycStatus = session.kycStatus;
       }
+
+      // NOTE: We intentionally do NOT make a DB call on every JWT evaluation.
+      // DB calls here would fire on every single page request in serverless (Vercel),
+      // causing connection pool exhaustion and 5s timeout failures.
+      // Fresh profile data is fetched on-demand from /api/user/profile in components.
+
       return token;
     },
+
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
