@@ -30,8 +30,8 @@ export function Navbar() {
   const user = session?.user as any;
   const isAdmin = user?.role === 'ADMIN';
 
-  // Public landing/auth pages where clean header is displayed ONLY when logged out
-  const isPublicPage = (!session) && (pathname === '/' || pathname === '/auth/login' || pathname.startsWith('/auth/'));
+  // Homepage and all auth pages always show the clean logo-only header
+  const isPublicPage = pathname === '/' || pathname === '/auth/login' || pathname.startsWith('/auth/');
 
   // Real-time Avatar & Profile Sync across all components and page refreshes/focus
   useEffect(() => {
@@ -77,15 +77,9 @@ export function Navbar() {
     return (
       <header className="sticky top-0 z-40 w-full glass-card border-b border-slate-800/80 bg-[#111A2E]/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative flex items-center justify-between min-h-[80px] py-1">
+          <div className="flex items-center min-h-[80px] py-1">
             <Link href="/" className="hover:opacity-90 transition-opacity flex items-center">
               <Logo size="md" />
-            </Link>
-
-            <Link href="/auth/login">
-              <Button variant="primary" size="sm" className="gradient-bg-blue text-[#0B1220] font-extrabold px-5">
-                Sign In
-              </Button>
             </Link>
           </div>
         </div>
