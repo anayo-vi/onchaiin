@@ -8,6 +8,11 @@ import { MobileBottomNav } from '@/components/layout/MobileNav';
 export const metadata: Metadata = {
   title: 'Onchaiin | Premium Crypto Wallet & Digital Gift Card Trading Platform',
   description: 'Trade digital gift cards for crypto instantly. Secure wallet storage for BTC, ETH, USDT, TRX, and LTC with institutional cold-storage security.',
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/icon.png',
+  },
 };
 
 export const viewport: Viewport = {
