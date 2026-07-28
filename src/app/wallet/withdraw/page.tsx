@@ -8,6 +8,9 @@ import {
   Lock,
   DollarSign,
   Building,
+  User,
+  Calendar,
+  Hash,
   Wallet as WalletIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,7 +21,15 @@ import { Modal } from '@/components/ui/modal';
 export default function WithdrawPage() {
   const [amount, setAmount] = useState<string>('');
   const [payoutMethod, setPayoutMethod] = useState<'BANK_WIRE' | 'USDT_WALLET'>('BANK_WIRE');
-  const [destinationDetails, setDestinationDetails] = useState<string>('');
+  
+  // Specific Bank Wire Input Fields
+  const [fullName, setFullName] = useState<string>('Leo Garcia Arthur');
+  const [bankName, setBankName] = useState<string>('');
+  const [routingNumber, setRoutingNumber] = useState<string>('');
+  const [accountNumber, setAccountNumber] = useState<string>('');
+  const [dob, setDob] = useState<string>('');
+  const [usdtAddress, setUsdtAddress] = useState<string>('');
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,10 +61,19 @@ export default function WithdrawPage() {
       setIsModalOpen(false);
       setSuccessMsg(true);
       setAmount('');
-      setDestinationDetails('');
+      setBankName('');
+      setRoutingNumber('');
+      setAccountNumber('');
+      setDob('');
+      setUsdtAddress('');
       setPassword('');
     }, 1500);
   };
+
+  const isFormValid =
+    payoutMethod === 'BANK_WIRE'
+      ? numAmount > 0 && numAmount <= availableBalanceUSD && fullName && bankName && routingNumber && dob
+      : numAmount > 0 && numAmount <= availableBalanceUSD && usdtAddress;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
@@ -143,24 +163,77 @@ export default function WithdrawPage() {
                 )}
               </div>
 
-              {/* Destination Details Input */}
-              <Input
-                label={
-                  payoutMethod === 'BANK_WIRE'
-                    ? 'Bank Account & Routing / IBAN Details'
-                    : 'Destination USDT (TRC20/ERC20) Wallet Address'
-                }
-                type="text"
-                placeholder={
-                  payoutMethod === 'BANK_WIRE'
-                    ? 'e.g. Chase Bank, Account #992019, Routing #121000358'
-                    : 'e.g. TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'
-                }
-                value={destinationDetails}
-                onChange={(e) => setDestinationDetails(e.target.value)}
-                leftIcon={<DollarSign className="w-4 h-4 text-[#6EB7FF]" />}
-                required
-              />
+              {/* Form Input Fields based on Payout Method */}
+              {payoutMethod === 'BANK_WIRE' ? (
+                <div className="space-y-4 pt-1">
+                  {/* 1. Full Name (as on bank account) */}
+                  <Input
+                    label="Full Name (as on bank account)"
+                    type="text"
+                    placeholder="e.g. Leo Garcia Arthur"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    leftIcon={<User className="w-4 h-4 text-[#6EB7FF]" />}
+                    required
+                  />
+
+                  {/* 2. Bank Name */}
+                  <Input
+                    label="Bank Name"
+                    type="text"
+                    placeholder="e.g. Chase Bank / Bank of America / Wells Fargo"
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                    leftIcon={<Building className="w-4 h-4 text-[#6EB7FF]" />}
+                    required
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* 3. Routing No */}
+                    <Input
+                      label="Routing No"
+                      type="text"
+                      placeholder="e.g. 121000358"
+                      value={routingNumber}
+                      onChange={(e) => setRoutingNumber(e.target.value)}
+                      leftIcon={<Hash className="w-4 h-4 text-[#6EB7FF]" />}
+                      required
+                    />
+
+                    {/* 4. Account Number / IBAN */}
+                    <Input
+                      label="Account No / IBAN"
+                      type="text"
+                      placeholder="e.g. 9920198421"
+                      value={accountNumber}
+                      onChange={(e) => setAccountNumber(e.target.value)}
+                      leftIcon={<Hash className="w-4 h-4 text-[#6EB7FF]" />}
+                      required
+                    />
+                  </div>
+
+                  {/* 5. Date of Birth as on bank account */}
+                  <Input
+                    label="Date of Birth (as on bank account)"
+                    type="date"
+                    value={dob}
+                    onChange={(e) => setDob(e.target.value)}
+                    leftIcon={<Calendar className="w-4 h-4 text-[#6EB7FF]" />}
+                    required
+                  />
+                </div>
+              ) : (
+                /* USDT Wallet Option */
+                <Input
+                  label="Destination USDT (TRC20/ERC20) Wallet Address"
+                  type="text"
+                  placeholder="e.g. TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                  value={usdtAddress}
+                  onChange={(e) => setUsdtAddress(e.target.value)}
+                  leftIcon={<DollarSign className="w-4 h-4 text-[#6EB7FF]" />}
+                  required
+                />
+              )}
 
               {/* Breakdown Box */}
               <div className="p-4 rounded-xl bg-[#0B1220]/80 border border-slate-800 space-y-2 text-xs">
@@ -179,7 +252,7 @@ export default function WithdrawPage() {
                 variant="primary"
                 size="lg"
                 className="w-full shadow-lg shadow-[#5A9BFF]/30 py-3.5 text-sm font-bold"
-                disabled={numAmount <= 0 || numAmount > availableBalanceUSD || !destinationDetails}
+                disabled={!isFormValid}
                 rightIcon={<ArrowUpRight className="w-4 h-4" />}
               >
                 Withdraw ${numAmount > 0 ? numAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'} USD
@@ -209,13 +282,27 @@ export default function WithdrawPage() {
         title="Confirm Dollar Withdrawal"
       >
         <div className="space-y-4 text-xs">
-          <div className="p-3.5 rounded-xl bg-[#0B1220] border border-slate-800 space-y-1">
-            <p className="text-slate-400">Withdrawing:</p>
-            <p className="text-xl font-mono font-black text-emerald-400">
-              ${numAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD
-            </p>
-            <p className="text-slate-400 mt-2">Destination:</p>
-            <p className="font-mono text-[#6EB7FF] truncate">{destinationDetails}</p>
+          <div className="p-3.5 rounded-xl bg-[#0B1220] border border-slate-800 space-y-2">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+              <span className="text-slate-400">Withdrawing:</span>
+              <span className="text-xl font-mono font-black text-emerald-400">
+                ${numAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD
+              </span>
+            </div>
+
+            {payoutMethod === 'BANK_WIRE' ? (
+              <div className="space-y-1.5 pt-1">
+                <p className="text-slate-400">Beneficiary Name: <strong className="text-white">{fullName}</strong></p>
+                <p className="text-slate-400">Bank Name: <strong className="text-white">{bankName}</strong></p>
+                <p className="text-slate-400">Routing No: <strong className="text-white">{routingNumber}</strong></p>
+                <p className="text-slate-400">Date of Birth: <strong className="text-white">{dob}</strong></p>
+              </div>
+            ) : (
+              <div className="pt-1">
+                <p className="text-slate-400">Destination USDT Address:</p>
+                <p className="font-mono text-[#6EB7FF] truncate">{usdtAddress}</p>
+              </div>
+            )}
           </div>
 
           <Input
