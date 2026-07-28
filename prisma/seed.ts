@@ -74,7 +74,7 @@ async function main() {
     data: {
       email: 'leogarcia39@onchaiin.com',
       passwordHash: leoPassword,
-      name: 'Leo Garcia',
+      name: 'Leo Garcia Arthur',
       role: 'USER',
       emailVerified: new Date(),
       avatar: '/profile-pic.jpeg',
