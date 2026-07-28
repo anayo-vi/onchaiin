@@ -208,42 +208,26 @@ export default function AdminGiftCardsSubmissionsPage() {
               </div>
             </div>
 
-            {/* Image Viewer & Direct Asset Download Buttons */}
+            {/* Image Viewer & Direct Asset Download Button */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="font-bold text-white">Submitted Front & Back Gift Card Assets:</p>
-                <span className="text-[11px] text-slate-400">Click button below to download high-res files</span>
+                <p className="font-bold text-white">Submitted Apple Gift Card Asset:</p>
+                <span className="text-[11px] text-slate-400">Click button below to download high-res file</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
                 {selectedSub.frontImageUrl && (
-                  <div className="space-y-2 p-3 rounded-xl bg-[#0B1220] border border-slate-800">
-                    <p className="text-[11px] font-bold text-slate-300">Front Card Image</p>
-                    <img src={selectedSub.frontImageUrl} alt="Front" className="w-full h-44 object-cover rounded-lg border border-slate-700" />
+                  <div className="space-y-2 p-3.5 rounded-xl bg-[#0B1220] border border-slate-800">
+                    <p className="text-[11px] font-bold text-slate-300">Apple Gift Card Image</p>
+                    <img src={selectedSub.frontImageUrl} alt="Apple Gift Card" className="w-full h-56 object-cover rounded-lg border border-slate-700" />
                     <Button
                       variant="outline"
                       size="sm"
                       className="w-full font-bold text-xs"
                       leftIcon={<Download className="w-3.5 h-3.5 text-[#6EB7FF]" />}
-                      onClick={() => handleDownloadAsset(selectedSub.frontImageUrl, `Apple_Gift_Card_Front_${selectedSub.id}.jpg`)}
+                      onClick={() => handleDownloadAsset(selectedSub.frontImageUrl, `Apple_Gift_Card_${selectedSub.id}.jpg`)}
                     >
-                      Download Front Asset
-                    </Button>
-                  </div>
-                )}
-
-                {selectedSub.backImageUrl && (
-                  <div className="space-y-2 p-3 rounded-xl bg-[#0B1220] border border-slate-800">
-                    <p className="text-[11px] font-bold text-slate-300">Back Card Image (PIN Code)</p>
-                    <img src={selectedSub.backImageUrl} alt="Back" className="w-full h-44 object-cover rounded-lg border border-slate-700" />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full font-bold text-xs"
-                      leftIcon={<Download className="w-3.5 h-3.5 text-purple-400" />}
-                      onClick={() => handleDownloadAsset(selectedSub.backImageUrl, `Apple_Gift_Card_Back_${selectedSub.id}.jpg`)}
-                    >
-                      Download Back Asset
+                      Download Apple Card Asset
                     </Button>
                   </div>
                 )}
