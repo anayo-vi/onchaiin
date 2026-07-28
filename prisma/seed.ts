@@ -77,7 +77,7 @@ async function main() {
       name: 'Leo Garcia',
       role: 'USER',
       emailVerified: new Date(),
-      avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150',
+      avatar: '/profile-pic.jpeg',
       kycStatus: 'APPROVED',
       profile: {
         create: {

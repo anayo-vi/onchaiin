@@ -106,7 +106,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between pt-2">
         <div className="flex items-center space-x-3.5">
           <img
-            src={user?.avatar || 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150'}
+            src={user?.avatar || '/profile-pic.jpeg'}
             alt={user?.name || 'Leo Garcia Arthur'}
             className="w-14 h-14 rounded-full object-cover ring-2 ring-[#6EB7FF]/50 shadow-xl"
           />
