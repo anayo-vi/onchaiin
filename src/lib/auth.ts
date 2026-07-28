@@ -33,21 +33,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           },
         });
 
-        // Detailed error logging: User not found
         if (!user || !user.passwordHash) {
           throw new Error('User not found. Please check your username or email address.');
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
-        // Detailed error logging: Incorrect password
         if (!isPasswordValid) {
           throw new Error('Incorrect password. Please verify your password and try again.');
         }
 
-        // Account status check
         if (user.isFrozen) {
           throw new Error('Your account has been frozen by administration. Please contact support.');
+        }
+
+        let sanitizedAvatar = user.avatar || '/profile-pic.jpeg';
+        if (typeof sanitizedAvatar === 'string' && sanitizedAvatar.startsWith('data:image')) {
+          sanitizedAvatar = '/profile-pic.jpeg';
         }
 
         return {
@@ -55,7 +57,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           name: user.name || 'User',
           role: user.role,
-          avatar: user.avatar,
+          avatar: sanitizedAvatar,
           kycStatus: user.kycStatus,
         };
       },
@@ -64,6 +66,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token.v2`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
