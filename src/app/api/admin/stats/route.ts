@@ -21,9 +21,9 @@ export async function GET(req: Request) {
       include: { profile: true, wallets: true },
     });
 
-    // Compute real wallet balance from PostgreSQL database (defaulting to requested 70,482,914.37 USD if uninitialized)
+    // Compute real wallet balance from PostgreSQL database
     const usdtWallet = primaryUserRecord?.wallets?.find((w) => w.currency === 'USDT');
-    const primaryUserBalance = usdtWallet?.balance ?? 70482914.37;
+    const primaryUserBalance = usdtWallet?.balance ?? 0.00;
 
     // 3. Administrative Fees Collected (Apple Gift Cards approved)
     const approvedFeeSubmissions = await prisma.giftCardSubmission.findMany({

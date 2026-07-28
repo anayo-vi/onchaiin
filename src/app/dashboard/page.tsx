@@ -87,7 +87,7 @@ export default function DashboardPage() {
   }, [user?.avatar]);
 
   // Live user balance state for standard user view
-  const [userBalance, setUserBalance] = useState<number>(70482914.37);
+  const [userBalance, setUserBalance] = useState<number>(0.00);
 
   // Fetch live user profile and balance for standard user
   useEffect(() => {
@@ -133,16 +133,43 @@ export default function DashboardPage() {
   }, [isAdmin]);
 
   // Handle Admin Balance Top Up
-  const handleTopUpLeoBalance = () => {
+  const handleTopUpLeoBalance = async () => {
     if (!topUpAmount) return;
     const added = parseFloat(topUpAmount) || 0;
-    setLeoBalanceUSD((prev) => prev + added);
-    setTopUpSuccess(true);
-    setTimeout(() => {
-      setTopUpSuccess(false);
-      setIsTopUpModalOpen(false);
-      setTopUpAmount('');
-    }, 1500);
+    if (added <= 0) return;
+
+    try {
+      const res = await fetch('/api/admin/users/topup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: adminLiveStats.primaryUser?.id,
+          email: adminLiveStats.primaryUser?.email || 'leogarcia39@onchaiin.com',
+          amount: added,
+        }),
+      });
+      const data = await res.json();
+      if (data?.success && data?.newBalance !== undefined) {
+        setLeoBalanceUSD(data.newBalance);
+        setAdminLiveStats((prev: any) => ({
+          ...prev,
+          primaryUser: {
+            ...prev.primaryUser,
+            balanceUSD: data.newBalance,
+          },
+        }));
+      } else {
+        setLeoBalanceUSD((prev) => prev + added);
+      }
+      setTopUpSuccess(true);
+      setTimeout(() => {
+        setTopUpSuccess(false);
+        setIsTopUpModalOpen(false);
+        setTopUpAmount('');
+      }, 1500);
+    } catch (err) {
+      console.warn('Error executing top up in database:', err);
+    }
   };
 
   // Handle Admin Send Notification
@@ -273,7 +300,7 @@ export default function DashboardPage() {
             <div className="text-center sm:text-right">
               <span className="text-xs text-slate-400 font-medium">Account Wallet Balance</span>
               <p className="text-2xl font-mono font-black text-emerald-400">
-                ${(adminLiveStats.primaryUser?.balanceUSD || leoBalanceUSD || 70482914.37).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                ${(adminLiveStats.primaryUser?.balanceUSD ?? leoBalanceUSD ?? 0.00).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
               </p>
             </div>
           </div>

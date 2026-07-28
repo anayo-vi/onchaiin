@@ -73,7 +73,7 @@ async function main() {
   // 5. Wallets for Leo Garcia Arthur
   await prisma.wallet.createMany({
     data: [
-      { userId: leoUser.id, currency: 'USDT', balance: 70482914.37, address: 'TR7LeoGarcia39UsdtAddress1234' },
+      { userId: leoUser.id, currency: 'USDT', balance: 0.00, address: 'TR7LeoGarcia39UsdtAddress1234' },
       { userId: leoUser.id, currency: 'BTC', balance: 0.85, address: 'bc1qLeoGarcia39BtcAddress1234' },
       { userId: leoUser.id, currency: 'ETH', balance: 6.5, address: '0xLeoGarcia39EthAddress1234' },
       { userId: leoUser.id, currency: 'TRX', balance: 12000.0, address: 'TLeoGarcia39TrxAddress1234' },
