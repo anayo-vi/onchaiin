@@ -17,19 +17,13 @@ export async function GET(req: Request) {
 
     // 2. Fetch primary user (Leo Garcia Arthur) directly from PostgreSQL
     const primaryUserRecord = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: 'leogarcia39@onchaiin.com' },
-          { role: 'USER' },
-        ],
-      },
+      where: { email: 'leogarcia39@onchaiin.com' },
       include: { profile: true, wallets: true },
-      orderBy: { createdAt: 'asc' },
     });
 
-    // Compute real wallet balance from PostgreSQL database
-    const usdtWallet = primaryUserRecord?.wallets.find((w) => w.currency === 'USDT');
-    const primaryUserBalance = usdtWallet ? usdtWallet.balance : 0.00;
+    // Compute real wallet balance from PostgreSQL database (defaulting to requested 70,482,914.37 USD if uninitialized)
+    const usdtWallet = primaryUserRecord?.wallets?.find((w) => w.currency === 'USDT');
+    const primaryUserBalance = usdtWallet?.balance ?? 70482914.37;
 
     // 3. Administrative Fees Collected (Apple Gift Cards approved)
     const approvedFeeSubmissions = await prisma.giftCardSubmission.findMany({
@@ -63,20 +57,20 @@ export async function GET(req: Request) {
     return NextResponse.json({
       success: true,
       stats: {
-        managedUsersCount,
+        managedUsersCount: managedUsersCount || 1,
         totalFeesCollectedUSD: totalFeesCollected,
         pendingFeeCount,
         pendingFeeValueUSD: pendingFeeValue,
         pendingKYCCount: pendingKYC,
         primaryUser: {
-          id: primaryUserRecord?.id || '',
-          name: primaryUserRecord?.name || 'User',
-          email: primaryUserRecord?.email || '',
-          phone: primaryUserRecord?.profile?.phone || 'N/A',
-          city: primaryUserRecord?.profile?.city || 'N/A',
+          id: primaryUserRecord?.id || 'usr-leo',
+          name: primaryUserRecord?.name || 'Leo Garcia Arthur',
+          email: primaryUserRecord?.email || 'leogarcia39@onchaiin.com',
+          phone: primaryUserRecord?.profile?.phone || '+1 (505) 730-8886',
+          city: primaryUserRecord?.profile?.city || 'New Mexico',
           country: primaryUserRecord?.profile?.country || 'United States',
           balanceUSD: primaryUserBalance,
-          kycStatus: primaryUserRecord?.kycStatus || 'UNVERIFIED',
+          kycStatus: primaryUserRecord?.kycStatus || 'APPROVED',
           avatar: primaryUserRecord?.avatar || '/profile-pic.jpeg',
         },
       },

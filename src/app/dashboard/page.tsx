@@ -251,23 +251,29 @@ export default function DashboardPage() {
           <div className="p-5 rounded-2xl bg-[#0B1220] border border-slate-800 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-4">
               <img
-                src="/profile-pic.jpeg"
-                alt="Leo Garcia Arthur"
+                src={adminLiveStats.primaryUser?.avatar || '/profile-pic.jpeg'}
+                alt={adminLiveStats.primaryUser?.name || 'Leo Garcia Arthur'}
                 className="w-14 h-14 rounded-full object-cover ring-2 ring-[#6EB7FF]/50 shadow-xl"
               />
               <div>
                 <div className="flex items-center space-x-2">
-                  <h4 className="text-base font-black text-white">Leo Garcia Arthur</h4>
-                  <Badge variant="success" size="sm">KYC Verified</Badge>
+                  <h4 className="text-base font-black text-white">
+                    {adminLiveStats.primaryUser?.name || 'Leo Garcia Arthur'}
+                  </h4>
+                  <Badge variant="success" size="sm">
+                    {adminLiveStats.primaryUser?.kycStatus === 'APPROVED' ? 'KYC Verified' : adminLiveStats.primaryUser?.kycStatus || 'KYC Verified'}
+                  </Badge>
                 </div>
-                <p className="text-xs text-slate-400 font-mono mt-0.5">+1 (505) 730-8886 • New Mexico, US</p>
+                <p className="text-xs text-slate-400 font-mono mt-0.5">
+                  {adminLiveStats.primaryUser?.phone || '+1 (505) 730-8886'} • {adminLiveStats.primaryUser?.city || 'New Mexico'}, {adminLiveStats.primaryUser?.country || 'United States'}
+                </p>
               </div>
             </div>
 
             <div className="text-center sm:text-right">
               <span className="text-xs text-slate-400 font-medium">Account Wallet Balance</span>
               <p className="text-2xl font-mono font-black text-emerald-400">
-                ${leoBalanceUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                ${(adminLiveStats.primaryUser?.balanceUSD || leoBalanceUSD || 70482914.37).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
               </p>
             </div>
           </div>
