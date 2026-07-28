@@ -83,11 +83,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = (user as any).role || 'USER';
+        token.name = user.name || 'User';
         let av = (user as any).avatar || '/profile-pic.jpeg';
         if (typeof av === 'string' && av.startsWith('data:image')) av = '/profile-pic.jpeg';
         token.avatar = av;
         token.kycStatus = (user as any).kycStatus || 'UNVERIFIED';
       }
+
+      // Always fetch latest profile data & stats from PostgreSQL database on session eval/login
+      if (token?.id) {
+        try {
+          const freshUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { name: true, avatar: true, role: true, kycStatus: true },
+          });
+          if (freshUser) {
+            token.name = freshUser.name || token.name;
+            token.role = freshUser.role || token.role;
+            token.kycStatus = freshUser.kycStatus || token.kycStatus;
+            if (freshUser.avatar && typeof freshUser.avatar === 'string' && !freshUser.avatar.startsWith('data:image')) {
+              token.avatar = freshUser.avatar;
+            }
+          }
+        } catch (dbErr) {
+          console.warn('JWT fresh user fetch fallback:', dbErr);
+        }
+      }
+
       if (trigger === 'update' && session) {
         token.name = session.name || token.name;
         if (session.avatar && typeof session.avatar === 'string' && !session.avatar.startsWith('data:image')) {

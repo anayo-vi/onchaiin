@@ -72,6 +72,13 @@ export default function SettingsPage() {
             window.dispatchEvent(new Event('storage'));
           }
 
+          // Persist updated avatar and profile to PostgreSQL database permanently
+          await fetch('/api/user/profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, avatar: finalUrl, phone, city, country }),
+          });
+
           // Update NextAuth session with a lightweight URL (not raw base64) to prevent Vercel 494 Request Header Too Large
           const cookieSafeAvatar = finalUrl.startsWith('data:image') ? '/profile-pic.jpeg' : finalUrl;
           await update({
@@ -79,7 +86,7 @@ export default function SettingsPage() {
             avatar: cookieSafeAvatar,
           });
 
-          console.log('✅ Real-time profile picture updated across session:', finalUrl);
+          console.log('✅ Real-time profile picture updated across session and database:', finalUrl);
         } catch (err) {
           console.warn('Real-time profile upload warning:', err);
         } finally {
@@ -100,6 +107,13 @@ export default function SettingsPage() {
       if (typeof window !== 'undefined') {
         localStorage.setItem('user_avatar', avatar);
       }
+
+      // Persist profile data to PostgreSQL database permanently
+      await fetch('/api/user/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, avatar, phone, city, country }),
+      });
 
       const cookieSafeAvatar = avatar.startsWith('data:image') ? '/profile-pic.jpeg' : avatar;
       await update({
