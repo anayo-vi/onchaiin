@@ -19,7 +19,7 @@ export const Logo: React.FC<LogoProps> = ({ className = '', size = 'md', animate
 
   const imgElement = (
     <img
-      src="/logo.png"
+      src="/new_logo.png"
       alt="Onchaiin"
       className={`${heightClasses[size]} w-auto object-contain block p-0 m-0 transition-transform hover:scale-[1.03] drop-shadow-md`}
     />
