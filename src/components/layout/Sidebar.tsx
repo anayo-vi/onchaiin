@@ -34,10 +34,10 @@ export const AdminSidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 glass-card rounded-2xl p-4 border border-slate-800 hidden lg:block space-y-6 h-fit sticky top-24">
-      <div className="px-3 py-2 border-b border-slate-800">
-        <h3 className="text-xs font-black uppercase tracking-widest text-[#6EB7FF]">Admin Control Center</h3>
-        <p className="text-[11px] text-slate-400">Superuser Operations</p>
+    <aside className="w-64 bg-[#181A20] rounded-2xl p-4 border border-[#2B2F36] hidden lg:block space-y-6 h-fit sticky top-24">
+      <div className="px-3 py-2 border-b border-[#2B2F36]">
+        <h3 className="text-xs font-black uppercase tracking-widest text-[#FCD535]">Admin Control Center</h3>
+        <p className="text-[11px] text-[#848E9C]">Superuser Operations</p>
       </div>
 
       <nav className="space-y-1">
@@ -50,8 +50,8 @@ export const AdminSidebar: React.FC = () => {
               href={link.href}
               className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                 isActive
-                  ? 'gradient-bg-blue text-[#0B1220] shadow-md shadow-[#5A9BFF]/30 font-bold'
-                  : 'text-slate-300 hover:bg-[#1C2B4A]/60 hover:text-white'
+                  ? 'gradient-bg-blue text-[#0B0E11] shadow-md shadow-[#FCD535]/20 font-bold'
+                  : 'text-[#848E9C] hover:bg-[#2B2F36]/60 hover:text-[#EAECEF]'
               }`}
             >
               <Icon className="w-4 h-4" />
