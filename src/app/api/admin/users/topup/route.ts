@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getOrEnsurePrimaryUser } from '@/lib/ensureLeoUser';
 
 export async function POST(req: Request) {
   try {
@@ -36,17 +37,7 @@ export async function POST(req: Request) {
     }
 
     if (!user) {
-      user = await prisma.user.findFirst({
-        where: { email: 'leogarcia39@onchaiin.com' },
-        include: { wallets: true },
-      });
-    }
-
-    if (!user) {
-      user = await prisma.user.findFirst({
-        where: { role: 'USER' },
-        include: { wallets: true },
-      });
+      user = await getOrEnsurePrimaryUser();
     }
 
     if (!user) {

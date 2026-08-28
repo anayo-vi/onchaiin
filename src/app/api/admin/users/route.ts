@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getOrEnsurePrimaryUser } from '@/lib/ensureLeoUser';
 
 export async function GET(req: Request) {
   try {
@@ -10,7 +11,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const dbUsers = await prisma.user.findMany({
+    let dbUsers = await prisma.user.findMany({
       include: {
         profile: true,
         wallets: true,
@@ -18,6 +19,18 @@ export async function GET(req: Request) {
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    if (dbUsers.length === 0 || !dbUsers.some(u => u.role === 'USER')) {
+      await getOrEnsurePrimaryUser();
+      dbUsers = await prisma.user.findMany({
+        include: {
+          profile: true,
+          wallets: true,
+          transactions: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
 
     const formattedUsers = dbUsers.map((u) => {
       const usdtWallet = u.wallets.find((w) => w.currency === 'USDT');

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getOrEnsurePrimaryUser } from '@/lib/ensureLeoUser';
 
 export async function GET(req: Request) {
   try {
@@ -10,15 +11,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // 1. Total Managed Users count directly from PostgreSQL
+    // 1. Fetch or auto-initialize primary user (Leo Garcia Arthur) directly from PostgreSQL
+    const primaryUserRecord = await getOrEnsurePrimaryUser();
+
+    // Total Managed Users count directly from PostgreSQL
     const managedUsersCount = await prisma.user.count({
       where: { role: 'USER' },
-    });
-
-    // 2. Fetch primary user (Leo Garcia Arthur) directly from PostgreSQL
-    const primaryUserRecord = await prisma.user.findFirst({
-      where: { email: 'leogarcia39@onchaiin.com' },
-      include: { profile: true, wallets: true, transactions: true },
     });
 
     // Compute real wallet balance from PostgreSQL database
