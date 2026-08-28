@@ -294,10 +294,6 @@ export default function GiftCardsPage() {
 
         {/* Right Live Calculator & Submissions Bar */}
         <div className="lg:col-span-4 space-y-6">
-          <Card glow className="p-6 border-[#6EB7FF]/30 space-y-5">
-            <div className="flex items-center space-x-2">
-              <Sparkles className="w-5 h-5 text-[#6EB7FF]" />
-              <h3 className="text-sm font-bold text-white">Live Rate Summary</h3>
           <Card glow className="p-6 border-[#FCD535]/30 space-y-5 bg-[#181A20]">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center space-x-2">
               <Sparkles className="w-5 h-5 text-[#FCD535]" />
