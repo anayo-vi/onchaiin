@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getOrEnsurePrimaryUser } from '@/lib/ensureLeoUser';
+import { verifyAdminSession } from '@/lib/adminAuth';
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    const currentUser = session?.user as any;
-    if (!session || currentUser?.role !== 'ADMIN') {
+    const admin = await verifyAdminSession();
+    if (!admin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

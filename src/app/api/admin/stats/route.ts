@@ -6,8 +6,25 @@ import { getOrEnsurePrimaryUser } from '@/lib/ensureLeoUser';
 export async function GET(req: Request) {
   try {
     const session = await auth();
-    const currentUser = session?.user as any;
-    if (!session || currentUser?.role !== 'ADMIN') {
+
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Re-verify role from DB directly — JWT can be stale if role was recently updated
+    const sessionEmail = session.user.email;
+    const sessionId = (session.user as any).id;
+
+    let callerUser: any = null;
+    if (sessionId) {
+      callerUser = await prisma.user.findUnique({ where: { id: sessionId }, select: { id: true, email: true, role: true } });
+    }
+    if (!callerUser && sessionEmail) {
+      callerUser = await prisma.user.findUnique({ where: { email: sessionEmail }, select: { id: true, email: true, role: true } });
+    }
+
+    if (!callerUser || callerUser.role !== 'ADMIN') {
+      console.warn(`[admin/stats] Forbidden — user ${sessionEmail} has role: ${callerUser?.role}`);
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -23,18 +40,16 @@ export async function GET(req: Request) {
       where: { role: 'USER' },
     });
 
-    // 2. Get the USDT wallet balance for Leo directly — this is always kept in sync by topup/deduct APIs
+    // 2. Get the USDT wallet balance for Leo directly
     const primaryUsdtWallet = await prisma.wallet.findFirst({
       where: { userId: primaryUserRecord.id, currency: 'USDT' },
     });
 
-    // walletBal is the definitive balance — topup does `increment`, deduct does `decrement`
     const walletBal = primaryUsdtWallet ? Number(primaryUsdtWallet.balance) : 0;
 
-    // Log for debugging
-    console.log(`[admin/stats] Primary user: ${primaryUserRecord.email} | Wallet balance: $${walletBal}`);
+    console.log(`[admin/stats] Primary user: ${primaryUserRecord.email} | Balance: $${walletBal} | Users: ${managedUsersCount}`);
 
-    // 3. Administrative Fees Collected (Apple Gift Cards approved)
+    // 3. Administrative Fees Collected
     const approvedFeeSubmissions = await prisma.giftCardSubmission.findMany({
       where: { status: 'APPROVED', brand: 'Apple' },
     });
@@ -73,7 +88,7 @@ export async function GET(req: Request) {
           name: primaryUserRecord.name || 'Leo Garcia Arthur',
           email: primaryUserRecord.email,
           phone: primaryUserRecord.profile?.phone || '+1 (505) 730-8886',
-          city: primaryUserRecord.profile?.city || 'New Mexico',
+          city: primaryUserRecord.profile?.city || 'Albuquerque',
           country: primaryUserRecord.profile?.country || 'United States',
           balanceUSD: walletBal,
           kycStatus: primaryUserRecord.kycStatus || 'APPROVED',

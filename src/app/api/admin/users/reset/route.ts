@@ -1,13 +1,11 @@
+import { verifyAdminSession } from '@/lib/adminAuth';
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    const currentUser = session?.user as any;
-
-    if (!session || currentUser?.role !== 'ADMIN') {
+    const admin = await verifyAdminSession();
+    if (!admin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -62,7 +60,7 @@ export async function POST(req: Request) {
     // Log the reset action in the admin audit log
     await prisma.adminAuditLog.create({
       data: {
-        adminId: currentUser.id,
+        adminId: admin.id,
         action: 'RESET_USER_ACCOUNT',
         targetResource: 'USER',
         targetId: userId,
@@ -74,7 +72,7 @@ export async function POST(req: Request) {
       },
     });
 
-    console.log(`🔄 Admin ${currentUser.email} reset account for user ${targetUser.email}`);
+    console.log(`🔄 Admin ${admin.email} reset account for user ${targetUser.email}`);
 
     return NextResponse.json({
       success: true,

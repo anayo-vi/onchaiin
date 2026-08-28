@@ -1,14 +1,13 @@
+import { verifyAdminSession } from '@/lib/adminAuth';
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getOrEnsurePrimaryUser } from '@/lib/ensureLeoUser';
 import bcrypt from 'bcryptjs';
 
 export async function GET(req: Request) {
   try {
-    const session = await auth();
-    const currentUser = session?.user as any;
-    if (!session || currentUser?.role !== 'ADMIN') {
+    const admin = await verifyAdminSession();
+    if (!admin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -62,9 +61,8 @@ export async function GET(req: Request) {
 // POST: Create a new User in PostgreSQL database
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    const currentUser = session?.user as any;
-    if (!session || currentUser?.role !== 'ADMIN') {
+    const admin = await verifyAdminSession();
+    if (!admin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -137,9 +135,8 @@ export async function POST(req: Request) {
 // PATCH: Update User Freeze status, KYC status, or profile details in PostgreSQL database
 export async function PATCH(req: Request) {
   try {
-    const session = await auth();
-    const currentUser = session?.user as any;
-    if (!session || currentUser?.role !== 'ADMIN') {
+    const admin = await verifyAdminSession();
+    if (!admin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
