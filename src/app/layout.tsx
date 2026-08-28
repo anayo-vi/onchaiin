@@ -9,9 +9,9 @@ export const metadata: Metadata = {
   title: 'Onchaiin | Premium Crypto Wallet & Digital Gift Card Trading Platform',
   description: 'Trade digital gift cards for crypto instantly. Secure wallet storage for BTC, ETH, USDT, TRX, and LTC with institutional cold-storage security.',
   icons: {
-    icon: '/new_icon.png',
-    shortcut: '/new_icon.png',
-    apple: '/new_icon.png',
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/icon.png',
   },
 };
 
