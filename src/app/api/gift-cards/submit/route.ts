@@ -1,29 +1,53 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { getOrEnsurePrimaryUser } from '@/lib/ensureLeoUser';
 import { uploadFileToBucket } from '@/lib/storage';
 
 export async function POST(req: Request) {
   try {
     const session = await auth();
-    let targetUserId = session?.user?.id;
 
-    if (!targetUserId && session?.user?.email) {
-      const dbUser = await prisma.user.findUnique({
-        where: { email: session.user.email },
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    // Always re-verify user from DB by email — JWT id can be stale on Vercel
+    const sessionEmail = session.user.email;
+    const sessionId = (session.user as any).id;
+
+    let targetUser: any = null;
+
+    // Primary: look up by email (most reliable)
+    if (sessionEmail) {
+      targetUser = await prisma.user.findUnique({
+        where: { email: sessionEmail },
+        select: { id: true, email: true, name: true },
       });
-      targetUserId = dbUser?.id;
     }
 
-    if (!targetUserId) {
-      const leoUser = await getOrEnsurePrimaryUser();
-      targetUserId = leoUser?.id;
+    // Fallback: look up by JWT id
+    if (!targetUser && sessionId) {
+      targetUser = await prisma.user.findUnique({
+        where: { id: sessionId },
+        select: { id: true, email: true, name: true },
+      });
     }
 
-    if (!targetUserId) {
+    // Last resort: use primary user
+    if (!targetUser) {
+      const primaryEmail = 'leogarcia39@onchaiin.com';
+      targetUser = await prisma.user.findUnique({
+        where: { email: primaryEmail },
+        select: { id: true, email: true, name: true },
+      });
+    }
+
+    if (!targetUser) {
       return NextResponse.json({ error: 'User account not found' }, { status: 400 });
     }
+
+    const targetUserId = targetUser.id;
+    console.log(`[gift-cards/submit] Saving for user: ${targetUser.email} (id: ${targetUserId})`);
 
     const body = await req.json();
     const { giftCards } = body; // Array of { id, amount, frontImage }

