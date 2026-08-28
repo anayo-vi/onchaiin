@@ -53,7 +53,6 @@ export default function WithdrawPage() {
 
   useEffect(() => {
     async function fetchUserData() {
-      setBalanceLoading(true);
       try {
         const res = await fetch('/api/user/profile');
         const data = await res.json();
@@ -61,7 +60,7 @@ export default function WithdrawPage() {
           if (data.user.wallets) {
             const usdtWallet = data.user.wallets.find((w: any) => w.currency === 'USDT');
             if (usdtWallet?.balance !== undefined) {
-              setAvailableBalanceUSD(usdtWallet.balance);
+              setAvailableBalanceUSD((prev) => Math.max(prev, usdtWallet.balance));
             }
           }
           if (data.user.name) setFullName(data.user.name);
@@ -73,13 +72,47 @@ export default function WithdrawPage() {
             setDeliveryPhone(data.user.profile.phone || '+1 (505) 730-8886');
           }
         }
+
+        // Also fetch wallets & transactions for real-time ledger calculation
+        const walletsRes = await fetch('/api/wallets');
+        const walletsData = await walletsRes.json();
+        if (walletsData?.wallets) {
+          let usdtBal = 0;
+          const allTxs: any[] = [];
+          walletsData.wallets.forEach((w: any) => {
+            if (w.currency === 'USDT' && w.balance) {
+              usdtBal = Math.max(usdtBal, w.balance);
+            }
+            if (w.transactions) {
+              w.transactions.forEach((t: any) => {
+                allTxs.push({ ...t, walletCurrency: w.currency });
+              });
+            }
+          });
+
+          const creditSum = allTxs
+            .filter((t: any) => (t.walletCurrency === 'USDT' || t.currency === 'USDT') && t.status === 'COMPLETED' && ['CREDIT', 'DEPOSIT', 'GIFT_CARD_PAYOUT'].includes(t.type))
+            .reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
+
+          const debitSum = allTxs
+            .filter((t: any) => (t.walletCurrency === 'USDT' || t.currency === 'USDT') && t.status === 'COMPLETED' && ['WITHDRAWAL', 'DEBIT'].includes(t.type))
+            .reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
+
+          const netLedgerBal = Math.max(0, creditSum - debitSum);
+          setAvailableBalanceUSD((prev) => Math.max(prev, usdtBal, netLedgerBal));
+        }
       } catch (err) {
         console.warn('User profile & balance fetch error:', err);
       } finally {
         setBalanceLoading(false);
       }
     }
+
     fetchUserData();
+
+    // 3-second real-time auto refresh for withdrawal page available balance
+    const interval = setInterval(fetchUserData, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const minWithdrawalUSD = 100.00;
