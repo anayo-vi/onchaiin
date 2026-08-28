@@ -213,20 +213,20 @@ export default function WithdrawPage() {
 
             {/* Payout Method — Cash Delivery only (single pill, no tab toggle) */}
             <div className="space-y-2">
-              <label className="text-xs uppercase font-bold tracking-wider text-slate-400">Payout Method</label>
-              <div className="p-3.5 rounded-xl border border-[#6EB7FF]/60 gradient-bg-blue flex items-center space-x-3">
-                <Truck className="w-5 h-5 text-[#0B1220]" />
-                <span className="text-sm font-extrabold text-[#0B1220]">Cash Delivery</span>
+              <label className="text-xs uppercase font-bold tracking-wider text-[#848E9C]">Payout Method</label>
+              <div className="p-3.5 rounded-xl border border-[#FCD535]/60 gradient-bg-blue flex items-center space-x-3">
+                <Truck className="w-5 h-5 text-[#0B0E11]" />
+                <span className="text-sm font-extrabold text-[#0B0E11]">Cash Delivery</span>
               </div>
             </div>
 
             {/* Amount Input */}
             <div className="space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="uppercase font-bold tracking-wider text-slate-400">Withdrawal Amount ($ USD)</span>
-                <span className="text-slate-300 font-mono">
+                <span className="uppercase font-bold tracking-wider text-[#848E9C]">Withdrawal Amount ($ USD)</span>
+                <span className="text-[#EAECEF] font-mono">
                   Available:{' '}
-                  <strong className="text-[#6EB7FF]">
+                  <strong className="text-[#FCD535]">
                     {balanceLoading
                       ? 'Loading…'
                       : `$${availableBalanceUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`}
@@ -234,20 +234,20 @@ export default function WithdrawPage() {
                 </span>
               </div>
               <div className="relative flex items-center">
-                <span className="absolute left-4 text-slate-400 font-bold">$</span>
+                <span className="absolute left-4 text-[#848E9C] font-bold">$</span>
                 <input
                   type="number"
                   step="any"
                   placeholder="0.00"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="glass-input w-full rounded-xl pl-8 pr-16 py-3.5 text-sm text-slate-100 placeholder:text-slate-500 font-mono font-bold"
+                  className="glass-input w-full rounded-xl pl-8 pr-16 py-3.5 text-sm text-[#EAECEF] placeholder:text-[#848E9C] font-mono font-bold"
                   required
                 />
                 <button
                   type="button"
                   onClick={handleMax}
-                  className="absolute right-3 px-2.5 py-1 bg-[#6EB7FF]/20 text-[#6EB7FF] rounded-lg text-xs font-bold hover:bg-[#6EB7FF]/40"
+                  className="absolute right-3 px-2.5 py-1 bg-[#FCD535]/20 text-[#FCD535] rounded-lg text-xs font-bold hover:bg-[#FCD535]/40"
                 >
                   MAX
                 </button>
@@ -269,7 +269,7 @@ export default function WithdrawPage() {
                 placeholder="e.g. Leo Garcia Arthur"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                leftIcon={<User className="w-4 h-4 text-[#6EB7FF]" />}
+                leftIcon={<User className="w-4 h-4 text-[#FCD535]" />}
                 required
               />
 
@@ -280,7 +280,7 @@ export default function WithdrawPage() {
                 placeholder="e.g. 123 Main Street, Apt 4B"
                 value={deliveryAddress}
                 onChange={(e) => setDeliveryAddress(e.target.value)}
-                leftIcon={<Home className="w-4 h-4 text-[#6EB7FF]" />}
+                leftIcon={<Home className="w-4 h-4 text-[#FCD535]" />}
                 required
               />
 
@@ -292,7 +292,7 @@ export default function WithdrawPage() {
                   placeholder="e.g. Albuquerque"
                   value={deliveryCity}
                   onChange={(e) => setDeliveryCity(e.target.value)}
-                  leftIcon={<MapPin className="w-4 h-4 text-[#6EB7FF]" />}
+                  leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
                   required
                 />
                 <Input
@@ -301,7 +301,7 @@ export default function WithdrawPage() {
                   placeholder="e.g. New Mexico"
                   value={deliveryState}
                   onChange={(e) => setDeliveryState(e.target.value)}
-                  leftIcon={<MapPin className="w-4 h-4 text-[#6EB7FF]" />}
+                  leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
                 />
               </div>
 
@@ -313,7 +313,7 @@ export default function WithdrawPage() {
                   placeholder="e.g. 87101"
                   value={deliveryZip}
                   onChange={(e) => setDeliveryZip(e.target.value)}
-                  leftIcon={<MapPin className="w-4 h-4 text-[#6EB7FF]" />}
+                  leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
                 />
                 <Input
                   label="Contact Phone Number"
@@ -321,7 +321,7 @@ export default function WithdrawPage() {
                   placeholder="e.g. +1 (505) 730-8886"
                   value={deliveryPhone}
                   onChange={(e) => setDeliveryPhone(e.target.value)}
-                  leftIcon={<Phone className="w-4 h-4 text-[#6EB7FF]" />}
+                  leftIcon={<Phone className="w-4 h-4 text-[#FCD535]" />}
                   required
                 />
               </div>
@@ -332,7 +332,7 @@ export default function WithdrawPage() {
                 type="date"
                 value={dob}
                 onChange={(e) => setDob(e.target.value)}
-                leftIcon={<Calendar className="w-4 h-4 text-[#6EB7FF]" />}
+                leftIcon={<Calendar className="w-4 h-4 text-[#FCD535]" />}
               />
             </div>
 
@@ -397,53 +397,53 @@ export default function WithdrawPage() {
           {/* Gift Card Upload List */}
           <div className="space-y-4">
             {giftCards.map((card, index) => (
-              <div key={card.id} className="p-4 rounded-2xl bg-[#0B1220] border border-slate-800 space-y-3 relative">
+              <div key={card.id} className="p-4 rounded-2xl bg-[#1E2026] border border-[#2B2F36] space-y-3 relative">
                 <div className="flex items-center justify-between">
                   <span className="font-extrabold text-white text-xs flex items-center space-x-2">
-                    <Gift className="w-4 h-4 text-[#6EB7FF]" />
+                    <Gift className="w-4 h-4 text-[#FCD535]" />
                     <span>Apple Gift Card #{index + 1}</span>
                   </span>
                   {giftCards.length > 1 && (
-                    <button type="button" onClick={() => removeGiftCard(card.id)} className="p-1 text-rose-400 hover:text-rose-300 transition-colors">
+                    <button type="button" onClick={() => removeGiftCard(card.id)} className="p-1 text-[#F6465D] hover:text-rose-300 transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block text-[11px] font-bold text-slate-300">Card Amount ($ USD)</label>
+                  <label className="block text-[11px] font-bold text-[#848E9C]">Card Amount ($ USD)</label>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#848E9C] font-bold">$</span>
                     <input
                       type="number"
                       step="any"
                       placeholder="e.g. 500 or 1000 or 2500"
                       value={card.amount}
                       onChange={(e) => updateCardAmount(card.id, e.target.value)}
-                      className="w-full bg-[#111A2E] border border-slate-700/80 rounded-xl pl-7 pr-4 py-2.5 text-xs text-white placeholder:text-slate-500 font-mono font-bold focus:outline-none focus:border-[#6EB7FF]"
+                      className="w-full bg-[#14151A] border border-[#2B2F36] rounded-xl pl-7 pr-4 py-2.5 text-xs text-[#EAECEF] placeholder:text-[#848E9C] font-mono font-bold focus:outline-none focus:border-[#FCD535]"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold text-slate-300">Card Image (Front Upload)</label>
+                  <label className="block text-[11px] font-bold text-[#848E9C]">Card Image (Front Upload)</label>
                   <label
                     htmlFor={`front-upload-${card.id}`}
                     className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 border-dashed transition-all cursor-pointer h-24 text-center ${
-                      card.frontImage ? 'border-emerald-500/60 bg-emerald-500/10' : 'border-slate-700 bg-[#111A2E] hover:border-[#6EB7FF]'
+                      card.frontImage ? 'border-[#0ECB81]/60 bg-[#0ECB81]/10' : 'border-[#2B2F36] bg-[#14151A] hover:border-[#FCD535]'
                     }`}
                   >
                     {card.frontImage ? (
                       <div className="flex flex-col items-center space-y-1">
-                        <FileImage className="w-5 h-5 text-emerald-400" />
-                        <span className="text-[10px] font-bold text-emerald-300">Front Image Uploaded ✓</span>
+                        <FileImage className="w-5 h-5 text-[#0ECB81]" />
+                        <span className="text-[10px] font-bold text-[#0ECB81]">Front Image Uploaded ✓</span>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center space-y-1 text-slate-400">
-                        <Upload className="w-5 h-5 text-[#6EB7FF]" />
-                        <span className="text-[10px] font-bold text-white">Upload Apple Card Image</span>
-                        <span className="text-[8px] text-slate-500">Click or drop front card photo</span>
+                      <div className="flex flex-col items-center space-y-1 text-[#848E9C]">
+                        <Upload className="w-5 h-5 text-[#FCD535]" />
+                        <span className="text-[10px] font-bold text-[#EAECEF]">Upload Apple Card Image</span>
+                        <span className="text-[8px] text-[#848E9C]">Click or drop front card photo</span>
                       </div>
                     )}
                   </label>
@@ -466,7 +466,7 @@ export default function WithdrawPage() {
             <button
               type="button"
               onClick={addGiftCard}
-              className="w-full py-3 rounded-xl border border-dashed border-[#6EB7FF]/40 bg-[#6EB7FF]/10 text-[#6EB7FF] font-bold text-xs hover:bg-[#6EB7FF]/20 flex items-center justify-center space-x-2 transition-all"
+              className="w-full py-3 rounded-xl border border-dashed border-[#FCD535]/40 bg-[#FCD535]/10 text-[#FCD535] font-bold text-xs hover:bg-[#FCD535]/20 flex items-center justify-center space-x-2 transition-all"
             >
               <Plus className="w-4 h-4" />
               <span>Add Another Apple Gift Card</span>
@@ -480,7 +480,7 @@ export default function WithdrawPage() {
             <Button
               variant="primary"
               size="md"
-              className="flex-1 font-bold gradient-bg-blue text-[#0B1220]"
+              className="flex-1 font-bold gradient-bg-blue text-[#0B0E11]"
               isLoading={isSubmitting}
               disabled={!isModalValid}
               onClick={handleConfirmWithdrawal}

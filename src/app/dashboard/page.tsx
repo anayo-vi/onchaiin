@@ -193,8 +193,8 @@ export default function DashboardPage() {
       </div>
 
       {/* 2. Total Balance Card */}
-      <Card glow className="p-6 sm:p-7 border-slate-800 bg-[#111A2E]/90 backdrop-blur-2xl rounded-3xl space-y-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-[#6EB7FF]/10 blur-[80px] rounded-full pointer-events-none" />
+      <Card glow className="p-6 sm:p-7 border-[#2B2F36] bg-[#181A20]/90 backdrop-blur-2xl rounded-3xl space-y-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-[#FCD535]/10 blur-[80px] rounded-full pointer-events-none" />
 
         <div className="space-y-2">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400">TOTAL BALANCE</p>
@@ -225,7 +225,7 @@ export default function DashboardPage() {
             <Button
               variant="primary"
               size="lg"
-              className="w-full py-3.5 text-sm font-extrabold gradient-bg-blue text-[#0B1220] rounded-2xl shadow-lg shadow-[#5A9BFF]/25"
+              className="w-full py-3.5 text-sm font-extrabold gradient-bg-blue text-[#0B0E11] rounded-2xl shadow-lg shadow-[#FCD535]/25"
             >
               Deposit
             </Button>
@@ -234,7 +234,7 @@ export default function DashboardPage() {
             <Button
               variant="primary"
               size="lg"
-              className="w-full py-3.5 text-sm font-extrabold gradient-bg-blue text-[#0B1220] rounded-2xl shadow-lg shadow-[#5A9BFF]/25"
+              className="w-full py-3.5 text-sm font-extrabold gradient-bg-blue text-[#0B0E11] rounded-2xl shadow-lg shadow-[#FCD535]/25"
             >
               Withdraw
             </Button>
@@ -247,20 +247,20 @@ export default function DashboardPage() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-extrabold text-white flex items-center space-x-2">
-              <Wallet className="w-4 h-4 text-[#6EB7FF]" />
+              <Wallet className="w-4 h-4 text-[#FCD535]" />
               <span>My Wallets</span>
             </h3>
-            <Link href="/wallet" className="text-xs font-bold text-[#6EB7FF] hover:underline flex items-center">
+            <Link href="/wallet" className="text-xs font-bold text-[#FCD535] hover:underline flex items-center">
               Full Wallet <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
             </Link>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {userWallets.map((wallet) => (
-              <Card key={wallet.id} hoverable className="p-3.5 border-slate-800 space-y-2 bg-[#111A2E]/80">
+              <Card key={wallet.id} hoverable className="p-3.5 border-[#2B2F36] space-y-2 bg-[#181A20]/80">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-[#6EB7FF]">{wallet.currency}</span>
-                  <Wallet className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-xs font-black text-[#FCD535]">{wallet.currency}</span>
+                  <Wallet className="w-3.5 h-3.5 text-[#848E9C]" />
                 </div>
                 <div>
                   <p className="text-xs font-mono font-bold text-white">
@@ -280,14 +280,14 @@ export default function DashboardPage() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-extrabold text-white flex items-center space-x-2">
-            <TrendingUp className="w-4 h-4 text-[#6EB7FF]" />
+            <TrendingUp className="w-4 h-4 text-[#FCD535]" />
             <span>Live Market Rates</span>
           </h3>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           {marketMovers.map((item) => (
-            <Card key={item.symbol} hoverable className="p-3.5 border-slate-800 space-y-2 bg-[#111A2E]/80">
+            <Card key={item.symbol} hoverable className="p-3.5 border-slate-800 space-y-2 bg-[#181A20]/80">
               <div className="flex items-center justify-between">
                 <span className="text-base">{item.icon}</span>
                 <span className={`text-[11px] font-bold ${item.isUp ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -307,12 +307,12 @@ export default function DashboardPage() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-extrabold text-white">Recent Activity</h3>
-          <Link href="/wallet" className="text-xs font-bold text-[#6EB7FF] hover:underline">
+          <Link href="/wallet" className="text-xs font-bold text-[#FCD535] hover:underline">
             View All
           </Link>
         </div>
 
-        <Card className="p-2 border-slate-800 divide-y divide-slate-800/60 bg-[#111A2E]/80">
+        <Card className="p-2 border-slate-800 divide-y divide-slate-800/60 bg-[#181A20]/80">
           {loadingProfile ? (
             <div className="p-6 text-center text-slate-500 text-xs">Loading transactions…</div>
           ) : transactions.length === 0 ? (

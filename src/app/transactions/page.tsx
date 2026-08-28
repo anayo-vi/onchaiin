@@ -66,10 +66,10 @@ const CATEGORY_ICON: Record<string, React.ComponentType<any>> = {
 };
 
 const CATEGORY_COLOR: Record<string, string> = {
-  WALLET:     'bg-[#6EB7FF]/20 text-[#6EB7FF]',
-  WITHDRAWAL: 'bg-rose-500/20 text-rose-400',
-  DEPOSIT:    'bg-emerald-500/20 text-emerald-400',
-  GIFT_CARD:  'bg-amber-500/20 text-amber-400',
+  WALLET:     'bg-[#FCD535]/20 text-[#FCD535]',
+  WITHDRAWAL: 'bg-[#F6465D]/20 text-[#F6465D]',
+  DEPOSIT:    'bg-[#0ECB81]/20 text-[#0ECB81]',
+  GIFT_CARD:  'bg-[#FCD535]/20 text-[#FCD535]',
 };
 
 function isApproved(status: string) {
@@ -108,7 +108,7 @@ function TxDetail({ tx }: { tx: Transaction }) {
   rows.push(['Reference ID', (
     <span className="flex items-center space-x-1.5 font-mono">
       <span>{truncate(tx.reference, 28)}</span>
-      <button onClick={() => copy(tx.reference)} className="text-[#6EB7FF] hover:text-white transition-colors">
+      <button onClick={() => copy(tx.reference)} className="text-[#FCD535] hover:text-white transition-colors">
         <Copy className="w-3 h-3" />
       </button>
     </span>
@@ -135,7 +135,7 @@ function TxDetail({ tx }: { tx: Transaction }) {
     rows.push(['Tx Hash', (
       <span className="flex items-center space-x-1.5 font-mono text-[11px]">
         <span>{truncate(tx.meta.txHash, 28)}</span>
-        <button onClick={() => copy(tx.meta.txHash)} className="text-[#6EB7FF] hover:text-white transition-colors">
+        <button onClick={() => copy(tx.meta.txHash)} className="text-[#FCD535] hover:text-white transition-colors">
           <Copy className="w-3 h-3" />
         </button>
       </span>
@@ -160,7 +160,7 @@ function TxDetail({ tx }: { tx: Transaction }) {
   }
 
   return (
-    <div className="px-4 pb-4 pt-2 border-t border-slate-800/60 bg-[#0B1220]/60 rounded-b-2xl">
+    <div className="px-4 pb-4 pt-2 border-t border-[#2B2F36] bg-[#1E2026] rounded-b-2xl">
       {copied && (
         <div className="mb-2 text-[11px] text-emerald-400 font-bold flex items-center space-x-1">
           <CheckCircle2 className="w-3 h-3" /> <span>Copied to clipboard</span>
@@ -272,17 +272,17 @@ export default function TransactionHistoryPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-black text-white flex items-center space-x-2">
-            <ReceiptText className="w-6 h-6 text-[#6EB7FF]" />
+            <ReceiptText className="w-6 h-6 text-[#FCD535]" />
             <span>Transaction History</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[#848E9C] mt-1">
             All your deposits, withdrawals, gift card submissions, and wallet activity
           </p>
         </div>
         <button
           onClick={fetchTransactions}
           disabled={loading}
-          className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-800/60 border border-slate-700 text-xs font-bold text-slate-300 hover:text-white hover:border-[#6EB7FF]/40 transition-all disabled:opacity-50"
+          className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-[#181A20] border border-[#2B2F36] text-xs font-bold text-[#EAECEF] hover:text-white hover:border-[#FCD535]/40 transition-all disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           <span>Refresh</span>
@@ -292,13 +292,13 @@ export default function TransactionHistoryPage() {
       {/* Summary Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Total', value: counts.total, color: 'text-white', bg: 'border-slate-700' },
-          { label: 'Approved', value: counts.approved, color: 'text-emerald-400', bg: 'border-emerald-500/30' },
-          { label: 'Pending', value: counts.pending, color: 'text-amber-400', bg: 'border-amber-500/30' },
-          { label: 'Rejected', value: counts.rejected, color: 'text-rose-400', bg: 'border-rose-500/30' },
+          { label: 'Total', value: counts.total, color: 'text-white', bg: 'border-[#2B2F36]' },
+          { label: 'Approved', value: counts.approved, color: 'text-[#0ECB81]', bg: 'border-[#0ECB81]/30' },
+          { label: 'Pending', value: counts.pending, color: 'text-[#FCD535]', bg: 'border-[#FCD535]/30' },
+          { label: 'Rejected', value: counts.rejected, color: 'text-[#F6465D]', bg: 'border-[#F6465D]/30' },
         ].map((s) => (
-          <Card key={s.label} className={`p-4 border ${s.bg} bg-[#111A2E]/80 text-center space-y-1`}>
-            <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">{s.label}</p>
+          <Card key={s.label} className={`p-4 border ${s.bg} bg-[#181A20] text-center space-y-1`}>
+            <p className="text-[11px] text-[#848E9C] font-medium uppercase tracking-wider">{s.label}</p>
             <p className={`text-2xl font-black ${s.color}`}>
               {loading ? '—' : s.value}
             </p>
@@ -324,8 +324,8 @@ export default function TransactionHistoryPage() {
               onClick={() => setCategoryFilter(c.key)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
                 categoryFilter === c.key
-                  ? 'bg-[#6EB7FF]/20 border-[#6EB7FF]/60 text-[#6EB7FF]'
-                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-600'
+                  ? 'bg-[#FCD535]/20 border-[#FCD535]/60 text-[#FCD535]'
+                  : 'bg-[#181A20] border-[#2B2F36] text-[#848E9C] hover:text-white hover:border-[#363A45]'
               }`}
             >
               {c.label}
@@ -361,10 +361,10 @@ export default function TransactionHistoryPage() {
             <div key={i} className="h-16 rounded-2xl bg-slate-800/40 animate-pulse" />
           ))
         ) : filtered.length === 0 ? (
-          <Card className="p-12 border-slate-800 bg-[#111A2E]/80 text-center space-y-3">
-            <ReceiptText className="w-10 h-10 mx-auto text-slate-600" />
-            <p className="text-sm font-bold text-slate-400">No transactions found</p>
-            <p className="text-xs text-slate-600">
+          <Card className="p-12 border-[#2B2F36] bg-[#181A20] text-center space-y-3">
+            <ReceiptText className="w-10 h-10 mx-auto text-[#848E9C]" />
+            <p className="text-sm font-bold text-[#848E9C]">No transactions found</p>
+            <p className="text-xs text-[#848E9C]">
               {search || categoryFilter !== 'ALL' || statusFilter !== 'ALL'
                 ? 'Try adjusting your filters'
                 : 'Your transaction history will appear here'}
@@ -383,7 +383,7 @@ export default function TransactionHistoryPage() {
             return (
               <div
                 key={tx.id}
-                className="rounded-2xl border border-slate-800 bg-[#111A2E]/80 overflow-hidden transition-all hover:border-slate-700"
+                className="rounded-2xl border border-[#2B2F36] bg-[#181A20] overflow-hidden transition-all hover:border-[#363A45]"
               >
                 {/* Main Row */}
                 <button
