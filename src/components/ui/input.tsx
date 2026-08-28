@@ -13,34 +13,34 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full space-y-1.5">
         {label && (
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-[#3A5272]">
             {label}
           </label>
         )}
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3.5 text-slate-400 pointer-events-none">
+            <div className="absolute left-3.5 text-[#7A95B4] pointer-events-none">
               {leftIcon}
             </div>
           )}
           <input
             ref={ref}
             className={clsx(
-              'glass-input w-full rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none transition-all duration-200',
+              'glass-input w-full rounded-xl px-4 py-3 text-sm text-[#0F1F3D] placeholder:text-[#9BB2CB] focus:outline-none transition-all duration-200',
               leftIcon && 'pl-10',
               rightIcon && 'pr-10',
-              error && 'border-rose-500/80 focus:border-rose-500',
+              error && 'border-rose-400 focus:border-rose-500 focus:ring-rose-200',
               className
             )}
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3.5 text-slate-400">
+            <div className="absolute right-3.5 text-[#7A95B4]">
               {rightIcon}
             </div>
           )}
         </div>
-        {error && <p className="text-xs text-rose-400 font-medium mt-1">{error}</p>}
+        {error && <p className="text-xs text-rose-500 font-medium mt-1">{error}</p>}
       </div>
     );
   }

@@ -48,7 +48,7 @@ export const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/70 backdrop-blur-md"
+            className="fixed inset-0 bg-[#0F2D54]/50 backdrop-blur-md"
           />
 
           <motion.div
@@ -56,13 +56,13 @@ export const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={`relative w-full ${widthClasses[maxWidth]} glass-card rounded-2xl p-6 shadow-2xl z-10 border border-slate-700/60 max-h-[90vh] overflow-y-auto`}
+            className={`relative w-full ${widthClasses[maxWidth]} bg-white rounded-2xl p-6 shadow-2xl shadow-[#0F2D54]/15 z-10 border border-[#D0DCEA] max-h-[90vh] overflow-y-auto`}
           >
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              {title && <h3 className="text-lg font-bold text-slate-100">{title}</h3>}
+            <div className="flex items-center justify-between pb-4 border-b border-[#EAF0F8]">
+              {title && <h3 className="text-lg font-bold text-[#0F1F3D]">{title}</h3>}
               <button
                 onClick={onClose}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1 rounded-lg text-[#7A95B4] hover:text-[#0F2D54] hover:bg-[#EAF0F8] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>

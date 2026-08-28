@@ -18,7 +18,7 @@ export const Card: React.FC<CardProps> = ({
       className={clsx(
         'glass-card rounded-2xl p-6 transition-all duration-300',
         hoverable && 'glass-card-hover',
-        glow && 'blue-glow border-[#6EB7FF]/40',
+        glow && 'blue-glow border-[#2563AB]/30',
         className
       )}
       {...props}

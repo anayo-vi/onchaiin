@@ -22,21 +22,21 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    'inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#6EB7FF]/50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
+    'inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#2563AB]/40 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
 
   const variants = {
     primary:
-      'gradient-bg-blue text-[#0B1220] hover:opacity-95 shadow-lg shadow-[#5A9BFF]/30 active:scale-[0.98]',
+      'gradient-bg-blue text-white hover:opacity-90 shadow-md shadow-[#1A4880]/20 active:scale-[0.98]',
     secondary:
-      'bg-[#1C2B4A]/80 text-slate-100 hover:bg-[#263961]/80 border border-slate-700/60 active:scale-[0.98]',
+      'bg-[#EAF0F8] text-[#1A4880] hover:bg-[#D0DCEA] border border-[#CBD8EA] active:scale-[0.98]',
     outline:
-      'bg-transparent text-[#6EB7FF] border border-[#6EB7FF]/50 hover:bg-[#6EB7FF]/10 active:scale-[0.98]',
+      'bg-transparent text-[#2563AB] border border-[#2563AB]/60 hover:bg-[#2563AB]/10 active:scale-[0.98]',
     ghost:
-      'bg-transparent text-slate-300 hover:text-white hover:bg-[#1C2B4A]/50',
+      'bg-transparent text-[#3A5272] hover:text-[#0F2D54] hover:bg-[#EAF0F8]',
     danger:
-      'bg-rose-600 text-white hover:bg-rose-700 shadow-lg shadow-rose-600/20 active:scale-[0.98]',
+      'bg-rose-600 text-white hover:bg-rose-700 shadow-md shadow-rose-600/20 active:scale-[0.98]',
     success:
-      'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 active:scale-[0.98]',
+      'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-600/20 active:scale-[0.98]',
   };
 
   const sizes = {

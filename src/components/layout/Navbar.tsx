@@ -34,7 +34,7 @@ export function Navbar() {
   // Homepage and all auth pages always show the clean logo-only header
   const isPublicPage = pathname === '/' || pathname === '/auth/login' || pathname.startsWith('/auth/');
 
-  // Real-time Avatar & Profile Sync across all components and page refreshes/focus
+  // Real-time Avatar & Profile Sync
   useEffect(() => {
     const syncAvatar = () => {
       const stored = typeof window !== 'undefined' ? localStorage.getItem('user_avatar') : null;
@@ -44,7 +44,6 @@ export function Navbar() {
         setAvatarUrl(user.avatar);
       }
     };
-
     syncAvatar();
     window.addEventListener('storage', syncAvatar);
     window.addEventListener('focus', syncAvatar);
@@ -70,13 +69,10 @@ export function Navbar() {
         { href: '/transactions', label: 'History', icon: ReceiptText },
       ];
 
-  // ---------------------------------------------------------------------
-  // 1. UNAUTHENTICATED PUBLIC PAGES HEADER
-  // Displays normal clean header with centered logo
-  // ---------------------------------------------------------------------
+  // ── Public Pages Header (logo only) ──────────────────────────────
   if (isPublicPage) {
     return (
-      <header className="sticky top-0 z-40 w-full glass-card border-b border-slate-800/80 bg-[#111A2E]/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 w-full bg-white/95 border-b border-[#D0DCEA] backdrop-blur-xl shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center min-h-[80px] py-1">
             <Link href="/" className="hover:opacity-90 transition-opacity flex items-center">
@@ -88,22 +84,18 @@ export function Navbar() {
     );
   }
 
-  // ---------------------------------------------------------------------
-  // 2. AUTHENTICATED INTERNAL APP HEADER FOR USER & ADMIN
-  // Displays Logo on Left, Nav Links in Center/Left, User Menu on Right
-  // ---------------------------------------------------------------------
+  // ── Authenticated App Header ──────────────────────────────────────
   return (
-    <header className="sticky top-0 z-40 w-full glass-card border-b border-slate-800/80 bg-[#111A2E]/95 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 w-full bg-white/96 border-b border-[#D0DCEA] backdrop-blur-xl shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex items-center justify-between min-h-[84px] py-2">
-          {/* Left Side: Brand Logo */}
+          {/* Left: Logo + Nav */}
           <div className="flex items-center space-x-6">
             <Link href="/dashboard" className="hover:opacity-90 transition-opacity flex items-center">
               <Logo size="md" />
             </Link>
 
-            {/* Navigation Links for Authenticated Session */}
-            <nav className="hidden lg:flex items-center space-x-1.5">
+            <nav className="hidden lg:flex items-center space-x-1">
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 const isActive = pathname === link.href || (link.href !== '/dashboard' && pathname.startsWith(link.href));
@@ -111,13 +103,13 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                    className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
                       isActive
-                        ? 'bg-[#6EB7FF]/15 text-[#6EB7FF] border border-[#6EB7FF]/40 shadow-sm font-bold'
-                        : 'text-slate-300 hover:text-white hover:bg-[#1C2B4A]/50'
+                        ? 'bg-[#1A4880]/10 text-[#1A4880] border border-[#2563AB]/25 font-bold'
+                        : 'text-[#3A5272] hover:text-[#0F2D54] hover:bg-[#EAF0F8]'
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#2563AB]' : 'text-[#7A95B4]'}`} />
                     <span>{link.label}</span>
                   </Link>
                 );
@@ -125,15 +117,15 @@ export function Navbar() {
             </nav>
           </div>
 
-          {/* Right Side: Notifications & User Menu */}
-          <div className="flex items-center space-x-3">
-            {/* Notifications Button */}
+          {/* Right: Bell + User menu */}
+          <div className="flex items-center space-x-2">
+            {/* Notifications */}
             <Link
               href="/notifications"
-              className="relative p-2 rounded-xl text-slate-300 hover:text-white hover:bg-[#1C2B4A]/60 transition-colors"
+              className="relative p-2 rounded-xl text-[#7A95B4] hover:text-[#1A4880] hover:bg-[#EAF0F8] transition-colors"
               aria-label="Notifications"
             >
-              <Bell className="w-5 h-5 text-[#6EB7FF]" />
+              <Bell className="w-5 h-5" />
               {unreadNotifications > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
                   {unreadNotifications}
@@ -145,35 +137,35 @@ export function Navbar() {
             <div className="relative">
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center space-x-3 p-1.5 rounded-xl hover:bg-[#1C2B4A]/60 transition-colors border border-slate-800/80 hover:border-[#6EB7FF]/40"
+                className="flex items-center space-x-2.5 p-1.5 rounded-xl hover:bg-[#EAF0F8] transition-colors border border-[#D0DCEA] hover:border-[#2563AB]/40"
               >
                 <img
                   src={avatarUrl}
                   alt={user?.name || 'User'}
-                  className="w-9 h-9 rounded-lg object-cover ring-2 ring-[#6EB7FF]/50"
+                  className="w-9 h-9 rounded-lg object-cover ring-2 ring-[#2563AB]/30"
                 />
                 <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-xs font-extrabold text-white line-clamp-1">
+                  <span className="text-xs font-extrabold text-[#0F1F3D] line-clamp-1">
                     {user?.name || (isAdmin ? 'Platform Admin' : 'Leo Garcia Arthur')}
                   </span>
-                  <span className="text-[10px] text-[#6EB7FF] font-mono font-bold capitalize">
+                  <span className="text-[10px] text-[#2563AB] font-bold capitalize">
                     {isAdmin ? 'Superuser Mode' : 'Account Active'}
                   </span>
                 </div>
-                <ChevronDown className="w-4 h-4 text-slate-400" />
+                <ChevronDown className="w-4 h-4 text-[#7A95B4]" />
               </button>
 
-              {/* Dropdown Menu */}
+              {/* Dropdown */}
               {userDropdownOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-60 bg-[#16223B] rounded-2xl py-2 shadow-2xl border border-slate-700 z-50 animate-in fade-in slide-in-from-top-2"
+                  className="absolute right-0 mt-2 w-60 bg-white rounded-2xl py-2 shadow-xl shadow-[#0F2D54]/10 border border-[#D0DCEA] z-50 animate-in fade-in slide-in-from-top-2"
                   onMouseLeave={() => setUserDropdownOpen(false)}
                 >
-                  <div className="px-4 py-2.5 border-b border-slate-800 space-y-1">
-                    <p className="text-xs font-extrabold text-white truncate">
+                  <div className="px-4 py-2.5 border-b border-[#EAF0F8] space-y-1">
+                    <p className="text-xs font-extrabold text-[#0F1F3D] truncate">
                       {user?.name || (isAdmin ? 'Platform Security Admin' : 'Leo Garcia Arthur')}
                     </p>
-                    <p className="text-[11px] text-slate-400 truncate">{user?.email || 'admin@onchaiin.com'}</p>
+                    <p className="text-[11px] text-[#7A95B4] truncate">{user?.email || 'admin@onchaiin.com'}</p>
                     <div className="mt-1 flex items-center space-x-2">
                       <Badge variant={isAdmin ? 'warning' : 'success'} size="sm">
                         {isAdmin ? 'Superuser Admin' : 'KYC Verified'}
@@ -184,9 +176,9 @@ export function Navbar() {
                   <Link
                     href="/settings"
                     onClick={() => setUserDropdownOpen(false)}
-                    className="flex items-center space-x-2.5 px-4 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-[#1C2B4A]/60 font-semibold"
+                    className="flex items-center space-x-2.5 px-4 py-2.5 text-xs text-[#3A5272] hover:text-[#0F2D54] hover:bg-[#EAF0F8] font-semibold"
                   >
-                    <User className="w-4 h-4 text-[#6EB7FF]" />
+                    <User className="w-4 h-4 text-[#2563AB]" />
                     <span>Profile & Settings</span>
                   </Link>
 
@@ -194,16 +186,16 @@ export function Navbar() {
                     <Link
                       href="/dashboard"
                       onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center space-x-2.5 px-4 py-2.5 text-xs text-amber-400 hover:text-amber-300 hover:bg-[#1C2B4A]/60 font-bold"
+                      className="flex items-center space-x-2.5 px-4 py-2.5 text-xs text-amber-700 hover:bg-amber-50 font-bold"
                     >
-                      <ShieldAlert className="w-4 h-4" />
+                      <ShieldAlert className="w-4 h-4 text-amber-600" />
                       <span>Executive Dashboard</span>
                     </Link>
                   )}
 
                   <button
                     onClick={() => signOut({ callbackUrl: '/auth/login' })}
-                    className="w-full flex items-center space-x-2.5 px-4 py-2.5 text-xs text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 text-left border-t border-slate-800/80 mt-1 font-semibold"
+                    className="w-full flex items-center space-x-2.5 px-4 py-2.5 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700 text-left border-t border-[#EAF0F8] mt-1 font-semibold"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Sign Out Account</span>
