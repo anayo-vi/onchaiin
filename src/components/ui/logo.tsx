@@ -11,10 +11,10 @@ interface LogoProps {
 
 export const Logo: React.FC<LogoProps> = ({ className = '', size = 'md', animated = true }) => {
   const heightClasses = {
-    sm: 'h-20 max-h-20', // 80px
-    md: 'h-28 sm:h-32 max-h-[122px]', // 112px on mobile, 122px on desktop (+20%)
-    lg: 'h-36 max-h-36', // 144px
-    xl: 'h-48 max-h-48', // 192px
+    sm: 'h-8 max-h-8',
+    md: 'h-10 sm:h-12 max-h-12',
+    lg: 'h-16 max-h-16',
+    xl: 'h-24 max-h-24',
   };
 
   const imgElement = (
