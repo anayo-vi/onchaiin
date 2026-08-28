@@ -11,46 +11,32 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // 1. Fetch or auto-initialize primary user (Leo Garcia Arthur) directly from PostgreSQL
+    // 1. Fetch STRICTLY the primary user leogarcia39@onchaiin.com from PostgreSQL
     const primaryUserRecord = await getOrEnsurePrimaryUser();
 
-    // Total Managed Users count directly from PostgreSQL
+    if (!primaryUserRecord) {
+      return NextResponse.json({ error: 'Primary user not found' }, { status: 500 });
+    }
+
+    // Total Managed Users count
     const managedUsersCount = await prisma.user.count({
       where: { role: 'USER' },
     });
 
-    // 2. Fetch primary user's exact USDT wallet and transactions from PostgreSQL
-    let primaryUsdtWallet = null;
-    let primaryUserBalance = 0.0;
+    // 2. Get the USDT wallet balance for Leo directly — this is always kept in sync by topup/deduct APIs
+    const primaryUsdtWallet = await prisma.wallet.findFirst({
+      where: { userId: primaryUserRecord.id, currency: 'USDT' },
+    });
 
-    if (primaryUserRecord) {
-      primaryUsdtWallet = await prisma.wallet.findFirst({
-        where: { userId: primaryUserRecord.id, currency: 'USDT' },
-      });
+    // walletBal is the definitive balance — topup does `increment`, deduct does `decrement`
+    const walletBal = primaryUsdtWallet ? Number(primaryUsdtWallet.balance) : 0;
 
-      const userTxs = await prisma.walletTransaction.findMany({
-        where: { userId: primaryUserRecord.id, currency: 'USDT' },
-      });
-
-      const creditSum = userTxs
-        .filter((t) => t.status === 'COMPLETED' && ['CREDIT', 'DEPOSIT', 'GIFT_CARD_PAYOUT'].includes(t.type))
-        .reduce((acc, t) => acc + (t.amount || 0), 0);
-
-      const debitSum = userTxs
-        .filter((t) => t.status === 'COMPLETED' && ['WITHDRAWAL', 'DEBIT'].includes(t.type))
-        .reduce((acc, t) => acc + (t.amount || 0), 0);
-
-      const netLedger = Math.max(0, creditSum - debitSum);
-      const walletBal = primaryUsdtWallet ? primaryUsdtWallet.balance : 0;
-      primaryUserBalance = walletBal > 0 ? walletBal : netLedger;
-    }
+    // Log for debugging
+    console.log(`[admin/stats] Primary user: ${primaryUserRecord.email} | Wallet balance: $${walletBal}`);
 
     // 3. Administrative Fees Collected (Apple Gift Cards approved)
     const approvedFeeSubmissions = await prisma.giftCardSubmission.findMany({
-      where: {
-        status: 'APPROVED',
-        brand: 'Apple',
-      },
+      where: { status: 'APPROVED', brand: 'Apple' },
     });
 
     const totalFeesCollected = approvedFeeSubmissions.reduce(
@@ -83,15 +69,15 @@ export async function GET(req: Request) {
         pendingFeeValueUSD: pendingFeeValue,
         pendingKYCCount: pendingKYC,
         primaryUser: {
-          id: primaryUserRecord?.id || 'usr-leo',
-          name: primaryUserRecord?.name || 'Leo Garcia Arthur',
-          email: primaryUserRecord?.email || 'leogarcia39@onchaiin.com',
-          phone: primaryUserRecord?.profile?.phone || '+1 (505) 730-8886',
-          city: primaryUserRecord?.profile?.city || 'New Mexico',
-          country: primaryUserRecord?.profile?.country || 'United States',
-          balanceUSD: primaryUserBalance,
-          kycStatus: primaryUserRecord?.kycStatus || 'APPROVED',
-          avatar: primaryUserRecord?.avatar || '/profile-pic.jpeg',
+          id: primaryUserRecord.id,
+          name: primaryUserRecord.name || 'Leo Garcia Arthur',
+          email: primaryUserRecord.email,
+          phone: primaryUserRecord.profile?.phone || '+1 (505) 730-8886',
+          city: primaryUserRecord.profile?.city || 'New Mexico',
+          country: primaryUserRecord.profile?.country || 'United States',
+          balanceUSD: walletBal,
+          kycStatus: primaryUserRecord.kycStatus || 'APPROVED',
+          avatar: primaryUserRecord.avatar || '/profile-pic.jpeg',
         },
       },
     });

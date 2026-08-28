@@ -90,16 +90,8 @@ export default function WithdrawPage() {
             }
           });
 
-          const creditSum = allTxs
-            .filter((t: any) => (t.walletCurrency === 'USDT' || t.currency === 'USDT') && t.status === 'COMPLETED' && ['CREDIT', 'DEPOSIT', 'GIFT_CARD_PAYOUT'].includes(t.type))
-            .reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
-
-          const debitSum = allTxs
-            .filter((t: any) => (t.walletCurrency === 'USDT' || t.currency === 'USDT') && t.status === 'COMPLETED' && ['WITHDRAWAL', 'DEBIT'].includes(t.type))
-            .reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
-
-          const netLedgerBal = Math.max(0, creditSum - debitSum);
-          setAvailableBalanceUSD(Math.max(usdtBal || 0, netLedgerBal));
+          // Use wallet balance directly from DB — it's always kept in sync by topup/deduct APIs
+          setAvailableBalanceUSD(Number(usdtBal) || 0);
         }
       } catch (err) {
         console.warn('User profile & balance fetch error:', err);

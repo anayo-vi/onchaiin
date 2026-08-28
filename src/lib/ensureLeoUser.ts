@@ -3,19 +3,14 @@ import bcrypt from 'bcryptjs';
 
 export async function getOrEnsurePrimaryUser() {
   try {
+    // STRICTLY find leogarcia39@onchaiin.com — never fall back to another user
     let user = await prisma.user.findFirst({
       where: { email: 'leogarcia39@onchaiin.com' },
       include: { profile: true, wallets: true, transactions: true },
     });
 
     if (!user) {
-      user = await prisma.user.findFirst({
-        where: { role: 'USER' },
-        include: { profile: true, wallets: true, transactions: true },
-      });
-    }
-
-    if (!user) {
+      // Only create if strictly not found — never use any other user as substitute
       const defaultPassword = await bcrypt.hash('Arthur2512', 10);
       user = await prisma.user.create({
         data: {
