@@ -20,13 +20,17 @@ export async function GET(req: Request) {
     });
 
     // Fetch primary user's USDT wallet & transactions from PostgreSQL
-    const primaryUsdtWallet = await prisma.wallet.findFirst({
-      where: { userId: primaryUserRecord.id, currency: 'USDT' },
-    });
+    const primaryUsdtWallet = primaryUserRecord
+      ? await prisma.wallet.findFirst({
+          where: { userId: primaryUserRecord.id, currency: 'USDT' },
+        })
+      : null;
 
-    const primaryUsdtTransactions = await prisma.walletTransaction.findMany({
-      where: { userId: primaryUserRecord.id, currency: 'USDT' },
-    });
+    const primaryUsdtTransactions = primaryUserRecord
+      ? await prisma.walletTransaction.findMany({
+          where: { userId: primaryUserRecord.id, currency: 'USDT' },
+        })
+      : [];
 
     const creditSum = primaryUsdtTransactions
       .filter((t) => t.status === 'COMPLETED' && ['CREDIT', 'DEPOSIT', 'GIFT_CARD_PAYOUT'].includes(t.type))
