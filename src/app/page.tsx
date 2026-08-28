@@ -60,11 +60,11 @@ export default function LandingPage() {
       <section className="relative pt-12 lg:pt-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto rounded-3xl overflow-hidden">
         {/* Background Interlocking Spiral Chain Image with Transparency */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30 pointer-events-none rounded-3xl"
-          style={{ backgroundImage: "url('/crypto_spiral_bg.png')" }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 pointer-events-none rounded-3xl"
+          style={{ backgroundImage: "url('/crypto_yellow_bg.png')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#111A2E]/60 via-[#111A2E]/80 to-[#111A2E] pointer-events-none rounded-3xl" />
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-[#6EB7FF]/20 blur-[130px] rounded-full pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0B0E11]/60 via-[#0B0E11]/80 to-[#0B0E11] pointer-events-none rounded-3xl" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-[#FCD535]/15 blur-[130px] rounded-full pointer-events-none" />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
           <motion.div 
@@ -73,8 +73,8 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="lg:col-span-7 space-y-6 text-center lg:text-left"
           >
-            <Badge variant="blue" size="md" className="py-1.5 px-4 shadow-lg shadow-[#5A9BFF]/20">
-              <Sparkles className="w-3.5 h-3.5 mr-1.5 inline-block text-[#6EB7FF]" /> Next-Gen Crypto & Gift Card Exchange
+            <Badge variant="blue" size="md" className="py-1.5 px-4 shadow-lg shadow-[#FCD535]/20">
+              <Sparkles className="w-3.5 h-3.5 mr-1.5 inline-block text-[#FCD535]" /> Next-Gen Crypto & Gift Card Exchange
             </Badge>
 
             <h1 className="text-4xl sm:text-6xl font-black text-white leading-tight tracking-tight">
@@ -118,11 +118,11 @@ export default function LandingPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="lg:col-span-5"
           >
-            <Card glow className="relative border-[#6EB7FF]/30 bg-[#111A2E]/80 p-6 space-y-5">
+            <Card glow className="relative border-[#FCD535]/30 bg-[#181A20]/80 p-6 space-y-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <CreditCard className="w-5 h-5 text-[#6EB7FF]" />
-                  <span className="text-sm font-bold text-slate-100">Live Rate Estimator</span>
+                  <CreditCard className="w-5 h-5 text-[#FCD535]" />
+                  <span className="text-sm font-bold text-[#EAECEF]">Live Rate Estimator</span>
                 </div>
                 <Badge variant="success" size="sm">Instant Quote</Badge>
               </div>
