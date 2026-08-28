@@ -206,13 +206,13 @@ export default function LandingPage() {
       </section>
 
       {/* Live Market Ticker */}
-      <section className="border-y border-slate-800/80 bg-slate-900/40 py-4 overflow-x-auto">
+      <section className="border-y border-[#2B2F36] bg-[#181A20] py-4 overflow-x-auto">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-6 min-w-[700px]">
           {cryptoTicker.map((coin) => (
-            <div key={coin.symbol} className="flex items-center space-x-3 bg-slate-950/60 px-4 py-2 rounded-xl border border-slate-800">
+            <div key={coin.symbol} className="flex items-center space-x-3 bg-[#1E2026] px-4 py-2 rounded-xl border border-[#2B2F36]">
               <span className="text-xs font-bold text-white">{coin.symbol}</span>
-              <span className="text-xs text-slate-300 font-mono">{coin.price}</span>
-              <span className={`text-xs font-semibold ${coin.isUp ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <span className="text-xs text-[#848E9C] font-mono">{coin.price}</span>
+              <span className={`text-xs font-semibold ${coin.isUp ? 'text-[#0ECB81]' : 'text-[#F6465D]'}`}>
                 {coin.change}
               </span>
             </div>
@@ -231,32 +231,32 @@ export default function LandingPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Card hoverable className="space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center border border-purple-500/30">
+          <Card hoverable className="space-y-4 border-[#2B2F36] bg-[#181A20]">
+            <div className="w-12 h-12 rounded-xl bg-[#FCD535]/15 text-[#FCD535] flex items-center justify-center border border-[#FCD535]/30">
               <Zap className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-white">Instant Automated Credit</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-[#848E9C] leading-relaxed">
               Once your gift card submission passes verification, funds are immediately credited to your USDT or BTC wallet balance without delays.
             </p>
           </Card>
 
-          <Card hoverable className="space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+          <Card hoverable className="space-y-4 border-[#2B2F36] bg-[#181A20]">
+            <div className="w-12 h-12 rounded-xl bg-[#0ECB81]/15 text-[#0ECB81] flex items-center justify-center border border-[#0ECB81]/30">
               <Lock className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-white">Cold Storage Vaults</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-[#848E9C] leading-relaxed">
               98% of user cryptocurrency balances are secured in multi-signature cold storage vaults with AES-256 military grade encryption.
             </p>
           </Card>
 
-          <Card hoverable className="space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
+          <Card hoverable className="space-y-4 border-[#2B2F36] bg-[#181A20]">
+            <div className="w-12 h-12 rounded-xl bg-[#FCD535]/15 text-[#FCD535] flex items-center justify-center border border-[#FCD535]/30">
               <TrendingUp className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold text-white">Best Market Rates</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-[#848E9C] leading-relaxed">
               We offer up to 90% payout rates for physical Visa/Vanilla cards and up to 85% for Apple and Steam cards with transparent fee structures.
             </p>
           </Card>
@@ -271,32 +271,32 @@ export default function LandingPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="glass-card rounded-2xl p-6 text-center space-y-4 border border-slate-800">
-            <div className="w-10 h-10 rounded-full gradient-bg-purple text-white font-black text-lg flex items-center justify-center mx-auto shadow-lg shadow-purple-600/30">
+          <div className="glass-card rounded-2xl p-6 text-center space-y-4 border border-[#2B2F36] bg-[#181A20]">
+            <div className="w-10 h-10 rounded-full gradient-bg-purple text-[#0B0E11] font-black text-lg flex items-center justify-center mx-auto shadow-lg shadow-[#FCD535]/30">
               1
             </div>
             <h3 className="text-base font-bold text-white">Select Brand & Value</h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[#848E9C]">
               Choose your gift card brand, country of issue, card type, and total card denomination.
             </p>
           </div>
 
-          <div className="glass-card rounded-2xl p-6 text-center space-y-4 border border-slate-800">
-            <div className="w-10 h-10 rounded-full gradient-bg-purple text-white font-black text-lg flex items-center justify-center mx-auto shadow-lg shadow-purple-600/30">
+          <div className="glass-card rounded-2xl p-6 text-center space-y-4 border border-[#2B2F36] bg-[#181A20]">
+            <div className="w-10 h-10 rounded-full gradient-bg-purple text-[#0B0E11] font-black text-lg flex items-center justify-center mx-auto shadow-lg shadow-[#FCD535]/30">
               2
             </div>
             <h3 className="text-base font-bold text-white">Upload Front & Back Image</h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[#848E9C]">
               Snap clear images of your gift card code and PIN for automated and admin review verification.
             </p>
           </div>
 
-          <div className="glass-card rounded-2xl p-6 text-center space-y-4 border border-slate-800">
-            <div className="w-10 h-10 rounded-full gradient-bg-purple text-white font-black text-lg flex items-center justify-center mx-auto shadow-lg shadow-purple-600/30">
+          <div className="glass-card rounded-2xl p-6 text-center space-y-4 border border-[#2B2F36] bg-[#181A20]">
+            <div className="w-10 h-10 rounded-full gradient-bg-purple text-[#0B0E11] font-black text-lg flex items-center justify-center mx-auto shadow-lg shadow-[#FCD535]/30">
               3
             </div>
             <h3 className="text-base font-bold text-white">Receive Crypto Payout</h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[#848E9C]">
               Funds are instantly credited to your wallet balance. Withdraw to any external address anytime!
             </p>
           </div>

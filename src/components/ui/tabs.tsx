@@ -23,7 +23,7 @@ export const Tabs: React.FC<TabsProps> = ({
   return (
     <div
       className={clsx(
-        'flex space-x-1 rounded-xl bg-slate-900/80 p-1.5 border border-slate-800',
+        'flex space-x-1 rounded-xl bg-[#1E2026] p-1.5 border border-[#2B2F36]',
         className
       )}
     >
@@ -36,8 +36,8 @@ export const Tabs: React.FC<TabsProps> = ({
             className={clsx(
               'flex-1 flex items-center justify-center space-x-2 rounded-lg py-2 px-3 text-xs font-semibold transition-all duration-200 cursor-pointer',
               isActive
-                ? 'gradient-bg-purple text-white shadow-md shadow-purple-600/30'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                ? 'gradient-bg-purple text-[#0B0E11] font-bold shadow-md shadow-[#FCD535]/25'
+                : 'text-[#848E9C] hover:text-[#EAECEF] hover:bg-[#2B2F36]/50'
             )}
           >
             <span>{tab.label}</span>
@@ -46,8 +46,8 @@ export const Tabs: React.FC<TabsProps> = ({
                 className={clsx(
                   'rounded-full px-1.5 py-0.5 text-[10px]',
                   isActive
-                    ? 'bg-white/20 text-white'
-                    : 'bg-slate-800 text-slate-400'
+                    ? 'bg-[#0B0E11]/20 text-[#0B0E11]'
+                    : 'bg-[#2B2F36] text-[#848E9C]'
                 )}
               >
                 {tab.badge}

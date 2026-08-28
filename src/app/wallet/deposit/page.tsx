@@ -58,10 +58,10 @@ export default function DepositPage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         {/* Left Form Column */}
         <div className="md:col-span-7 space-y-6">
-          <Card className="p-6 border-slate-800 space-y-6">
+          <Card className="p-6 border-[#2B2F36] space-y-6 bg-[#181A20]">
             {/* Step 1: Select Crypto */}
             <div className="space-y-2">
-              <label className="text-xs uppercase font-bold tracking-wider text-slate-400">1. Select Asset</label>
+              <label className="text-xs uppercase font-bold tracking-wider text-[#848E9C]">1. Select Asset</label>
               <div className="grid grid-cols-5 gap-2">
                 {(['USDT', 'BTC', 'ETH', 'TRX', 'LTC'] as CryptoCurrency[]).map((c) => (
                   <button
@@ -70,8 +70,8 @@ export default function DepositPage() {
                     onClick={() => setSelectedCurrency(c)}
                     className={`py-3 rounded-xl text-xs font-bold transition-all ${
                       selectedCurrency === c
-                        ? 'gradient-bg-purple text-white shadow-lg shadow-purple-600/30'
-                        : 'bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-800'
+                        ? 'gradient-bg-purple text-[#0B0E11] shadow-lg shadow-[#FCD535]/25'
+                        : 'bg-[#1E2026] border border-[#2B2F36] text-[#EAECEF] hover:bg-[#2B2F36]'
                     }`}
                   >
                     {c}
@@ -83,14 +83,14 @@ export default function DepositPage() {
             {/* Network Selector for USDT */}
             {selectedCurrency === 'USDT' && (
               <div className="space-y-2">
-                <label className="text-xs uppercase font-bold tracking-wider text-slate-400">Network</label>
+                <label className="text-xs uppercase font-bold tracking-wider text-[#848E9C]">Network</label>
                 <div className="flex space-x-3">
                   <button
                     onClick={() => setNetwork('TRC20')}
                     className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
                       network === 'TRC20'
-                        ? 'border-purple-500 bg-purple-500/10 text-purple-300'
-                        : 'border-slate-800 bg-slate-900 text-slate-400'
+                        ? 'border-[#FCD535] bg-[#FCD535]/15 text-[#FCD535]'
+                        : 'border-[#2B2F36] bg-[#1E2026] text-[#848E9C]'
                     }`}
                   >
                     TRON (TRC20)
@@ -99,8 +99,8 @@ export default function DepositPage() {
                     onClick={() => setNetwork('ERC20')}
                     className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
                       network === 'ERC20'
-                        ? 'border-purple-500 bg-purple-500/10 text-purple-300'
-                        : 'border-slate-800 bg-slate-900 text-slate-400'
+                        ? 'border-[#FCD535] bg-[#FCD535]/15 text-[#FCD535]'
+                        : 'border-[#2B2F36] bg-[#1E2026] text-[#848E9C]'
                     }`}
                   >
                     Ethereum (ERC20)
@@ -111,13 +111,13 @@ export default function DepositPage() {
 
             {/* Step 2: Deposit Address */}
             <div className="space-y-2">
-              <label className="text-xs uppercase font-bold tracking-wider text-slate-400">2. Deposit Address</label>
+              <label className="text-xs uppercase font-bold tracking-wider text-[#848E9C]">2. Deposit Address</label>
               <div className="flex items-center space-x-2">
                 <input
                   type="text"
                   readOnly
                   value={depositAddress}
-                  className="glass-input w-full rounded-xl px-4 py-3 text-xs font-mono text-purple-300"
+                  className="glass-input w-full rounded-xl px-4 py-3 text-xs font-mono text-[#FCD535]"
                 />
                 <Button
                   onClick={handleCopy}
@@ -139,19 +139,19 @@ export default function DepositPage() {
             </div>
 
             {/* Simulation Sandbox Button */}
-            <div className="pt-2 border-t border-slate-800">
+            <div className="pt-2 border-t border-[#2B2F36]">
               <Button
                 onClick={handleSimulateDeposit}
                 variant="outline"
                 size="md"
-                className="w-full border-dashed border-purple-500/40 text-purple-300"
+                className="w-full border-dashed border-[#FCD535]/40 text-[#FCD535]"
                 isLoading={isSimulating}
-                leftIcon={<Sparkles className="w-4 h-4 text-purple-400" />}
+                leftIcon={<Sparkles className="w-4 h-4 text-[#FCD535]" />}
               >
                 Simulate Instant Deposit (Dev Sandbox)
               </Button>
               {simulatedSuccess && (
-                <p className="text-xs text-emerald-400 text-center mt-2 font-semibold">
+                <p className="text-xs text-[#0ECB81] text-center mt-2 font-semibold">
                   ✓ Mock Deposit of 500 {selectedCurrency} credited to your wallet balance!
                 </p>
               )}
@@ -161,14 +161,14 @@ export default function DepositPage() {
 
         {/* Right QR Code Column */}
         <div className="md:col-span-5 space-y-6">
-          <Card glow className="p-6 text-center space-y-4 border-slate-800">
+          <Card glow className="p-6 text-center space-y-4 border-[#2B2F36] bg-[#181A20]">
             <div className="flex items-center justify-center space-x-2">
-              <QrCode className="w-5 h-5 text-purple-400" />
+              <QrCode className="w-5 h-5 text-[#FCD535]" />
               <span className="text-sm font-bold text-white">Scan QR Code</span>
             </div>
 
             {/* Simulated QR Code Canvas Box */}
-            <div className="w-48 h-48 mx-auto bg-white p-3 rounded-2xl shadow-xl flex items-center justify-center border-4 border-purple-500/40">
+            <div className="w-48 h-48 mx-auto bg-white p-3 rounded-2xl shadow-xl flex items-center justify-center border-4 border-[#FCD535]/40">
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(depositAddress)}`}
                 alt="Deposit QR Code"
@@ -176,7 +176,7 @@ export default function DepositPage() {
               />
             </div>
 
-            <p className="text-[11px] text-slate-400">Scan with your mobile wallet app (Metamask, TrustWallet, Binance)</p>
+            <p className="text-[11px] text-[#848E9C]">Scan with your mobile wallet app (Metamask, TrustWallet, Binance)</p>
           </Card>
         </div>
       </div>
