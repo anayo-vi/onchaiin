@@ -55,8 +55,8 @@ export default function DashboardPage() {
   // Fetch user profile, wallets, and recent transactions from DB
   useEffect(() => {
     if (status !== 'authenticated' || isAdmin) return;
-    async function fetchProfile() {
-      setLoadingProfile(true);
+    async function fetchProfile(isInitial = false) {
+      if (isInitial) setLoadingProfile(true);
       try {
         const res = await fetch('/api/user/profile');
         const data = await res.json();
@@ -71,14 +71,14 @@ export default function DashboardPage() {
             setUserWallets(u.wallets);
             const usdtWallet = u.wallets.find((w: any) => w.currency === 'USDT');
             if (usdtWallet?.balance !== undefined) {
-              setUserBalance(usdtWallet.balance);
+              setUserBalance((prev) => Math.max(prev, usdtWallet.balance));
             }
           }
         }
       } catch (err) {
         console.warn('User profile fetch error:', err);
       } finally {
-        setLoadingProfile(false);
+        if (isInitial) setLoadingProfile(false);
       }
     }
 
@@ -120,13 +120,13 @@ export default function DashboardPage() {
       }
     }
 
-    fetchProfile();
+    fetchProfile(true);
     fetchTransactions();
 
     const interval = setInterval(() => {
-      fetchProfile();
+      fetchProfile(false);
       fetchTransactions();
-    }, 5000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [status, isAdmin]);

@@ -61,8 +61,8 @@ export default function AdminOverviewPage() {
   const [notifSuccess, setNotifSuccess] = useState(false);
   const [notifLoading, setNotifLoading] = useState(false);
 
-  const fetchStats = async () => {
-    setLoading(true);
+  const fetchStats = async (isInitial = false) => {
+    if (isInitial) setLoading(true);
     try {
       const res = await fetch('/api/admin/stats');
       const data = await res.json();
@@ -73,13 +73,13 @@ export default function AdminOverviewPage() {
     } catch (err) {
       console.warn('Admin stats fetch error:', err);
     } finally {
-      setLoading(false);
+      if (isInitial) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchStats();
-    const interval = setInterval(fetchStats, 3000);
+    fetchStats(true);
+    const interval = setInterval(() => fetchStats(false), 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -206,7 +206,7 @@ export default function AdminOverviewPage() {
 
         <div className="flex items-center space-x-3">
           <button
-            onClick={fetchStats}
+            onClick={() => fetchStats(true)}
             disabled={loading}
             className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-800/60 border border-slate-700 text-xs font-bold text-slate-300 hover:text-white hover:border-[#6EB7FF]/40 transition-all disabled:opacity-50"
           >
