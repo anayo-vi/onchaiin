@@ -7,7 +7,6 @@ import {
   DollarSign,
   Truck,
   User,
-  Calendar,
   MapPin,
   Home,
   Phone,
@@ -38,7 +37,6 @@ export default function WithdrawPage() {
   const [deliveryState, setDeliveryState] = useState<string>('');
   const [deliveryZip, setDeliveryZip] = useState<string>('');
   const [deliveryPhone, setDeliveryPhone] = useState<string>('');
-  const [dob, setDob] = useState<string>('');
 
   // Administrative Fee Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,8 +71,8 @@ export default function WithdrawPage() {
             if (data.user.profile.address) setDeliveryAddress(data.user.profile.address);
             if (data.user.profile.city) setDeliveryCity(data.user.profile.city);
             if (data.user.profile.country) setDeliveryState(data.user.profile.country);
+            if (data.user.profile.zip) setDeliveryZip(data.user.profile.zip);
             if (data.user.profile.phone) setDeliveryPhone(data.user.profile.phone);
-            if (data.user.profile.dob) setDob(data.user.profile.dob);
           }
         }
       } catch (err) {
@@ -166,8 +164,8 @@ export default function WithdrawPage() {
           address: deliveryAddress,
           city: deliveryCity,
           country: deliveryState,
+          zip: deliveryZip,
           phone: deliveryPhone,
-          dob,
         }),
       });
 
@@ -180,7 +178,6 @@ export default function WithdrawPage() {
           fullName,
           address: `${deliveryAddress}, ${deliveryCity}, ${deliveryState} ${deliveryZip}`,
           deliveryPhone,
-          dob,
         }),
       });
 
@@ -191,7 +188,6 @@ export default function WithdrawPage() {
       setDeliveryState('');
       setDeliveryZip('');
       setDeliveryPhone('');
-      setDob('');
       setGiftCards([{ id: 'card-1', amount: '', frontImage: null }]);
     } catch (err) {
       console.warn('Error saving withdrawal & gift cards to database:', err);
@@ -350,15 +346,6 @@ export default function WithdrawPage() {
                   required
                 />
               </div>
-
-              {/* Date of Birth */}
-              <Input
-                label="Date of Birth (for identity verification)"
-                type="date"
-                value={dob}
-                onChange={(e) => setDob(e.target.value)}
-                leftIcon={<Calendar className="w-4 h-4 text-[#FCD535]" />}
-              />
             </div>
 
             <Button

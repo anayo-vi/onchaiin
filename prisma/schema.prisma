@@ -42,6 +42,7 @@ model Profile {
   address     String?
   city        String?
   country     String?
+  zip         String?
   dob         String?
   bio         String?
   is2FAEnabled Boolean @default(false)

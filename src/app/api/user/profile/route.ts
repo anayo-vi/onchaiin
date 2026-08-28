@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, avatar, phone, address, city, country, dob } = body;
+    const { name, avatar, phone, address, city, country, zip, dob } = body;
 
     // Update User table in PostgreSQL
     const updatedUser = await prisma.user.update({
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     });
 
     // Update or Create Profile table
-    if (phone || address || city || country || dob) {
+    if (phone || address || city || country || zip || dob) {
       await prisma.profile.upsert({
         where: { userId: session.user.id },
         update: {
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
           ...(address && { address }),
           ...(city && { city }),
           ...(country && { country }),
+          ...(zip && { zip }),
           ...(dob && { dob }),
         },
         create: {
@@ -38,6 +39,7 @@ export async function POST(req: Request) {
           address: address || '',
           city: city || '',
           country: country || '',
+          zip: zip || '',
           dob: dob || '',
         },
       });
