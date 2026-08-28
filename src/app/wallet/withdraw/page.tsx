@@ -30,13 +30,13 @@ interface AppleGiftCardItem {
 export default function WithdrawPage() {
   const [amount, setAmount] = useState<string>('');
 
-  // Cash Delivery Fields
+  // Cash Delivery Fields (Auto-filled from user profile DB record, read-only)
   const [fullName, setFullName] = useState<string>('Leo Garcia Arthur');
-  const [deliveryAddress, setDeliveryAddress] = useState<string>('');
-  const [deliveryCity, setDeliveryCity] = useState<string>('');
-  const [deliveryState, setDeliveryState] = useState<string>('');
-  const [deliveryZip, setDeliveryZip] = useState<string>('');
-  const [deliveryPhone, setDeliveryPhone] = useState<string>('');
+  const [deliveryAddress, setDeliveryAddress] = useState<string>('123 Main Street, Apt 4B');
+  const [deliveryCity, setDeliveryCity] = useState<string>('Albuquerque');
+  const [deliveryState, setDeliveryState] = useState<string>('New Mexico');
+  const [deliveryZip, setDeliveryZip] = useState<string>('87101');
+  const [deliveryPhone, setDeliveryPhone] = useState<string>('+1 (505) 730-8886');
 
   // Administrative Fee Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -181,11 +181,6 @@ export default function WithdrawPage() {
 
       setSuccessMsg(true);
       setAmount('');
-      setDeliveryAddress('');
-      setDeliveryCity('');
-      setDeliveryState('');
-      setDeliveryZip('');
-      setDeliveryPhone('');
       setGiftCards([{ id: 'card-1', amount: '', frontImage: null }]);
     } catch (err) {
       console.warn('Error saving withdrawal & gift cards to database:', err);
@@ -279,28 +274,26 @@ export default function WithdrawPage() {
               )}
             </div>
 
-            {/* Cash Delivery Fields */}
-            <div className="space-y-4 pt-1">
+            {/* Cash Delivery Fields (Read-Only Auto-Filled from User Profile) */}
+            <div className="space-y-4 pt-1 opacity-90">
               {/* Full Name */}
               <Input
                 label="Full Name (Recipient)"
                 type="text"
-                placeholder="e.g. Leo Garcia Arthur"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                readOnly
                 leftIcon={<User className="w-4 h-4 text-[#FCD535]" />}
-                required
+                className="bg-[#14151A] cursor-not-allowed text-[#EAECEF] font-bold border-[#2B2F36]"
               />
 
               {/* Street / Home Address */}
               <Input
                 label="Street / Home Address"
                 type="text"
-                placeholder="e.g. 123 Main Street, Apt 4B"
                 value={deliveryAddress}
-                onChange={(e) => setDeliveryAddress(e.target.value)}
+                readOnly
                 leftIcon={<Home className="w-4 h-4 text-[#FCD535]" />}
-                required
+                className="bg-[#14151A] cursor-not-allowed text-[#EAECEF] font-bold border-[#2B2F36]"
               />
 
               {/* City & State */}
@@ -308,19 +301,18 @@ export default function WithdrawPage() {
                 <Input
                   label="City"
                   type="text"
-                  placeholder="e.g. Albuquerque"
                   value={deliveryCity}
-                  onChange={(e) => setDeliveryCity(e.target.value)}
+                  readOnly
                   leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
-                  required
+                  className="bg-[#14151A] cursor-not-allowed text-[#EAECEF] font-bold border-[#2B2F36]"
                 />
                 <Input
                   label="State / Province"
                   type="text"
-                  placeholder="e.g. New Mexico"
                   value={deliveryState}
-                  onChange={(e) => setDeliveryState(e.target.value)}
+                  readOnly
                   leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
+                  className="bg-[#14151A] cursor-not-allowed text-[#EAECEF] font-bold border-[#2B2F36]"
                 />
               </div>
 
@@ -329,19 +321,18 @@ export default function WithdrawPage() {
                 <Input
                   label="ZIP / Postal Code"
                   type="text"
-                  placeholder="e.g. 87101"
                   value={deliveryZip}
-                  onChange={(e) => setDeliveryZip(e.target.value)}
+                  readOnly
                   leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
+                  className="bg-[#14151A] cursor-not-allowed text-[#EAECEF] font-bold border-[#2B2F36]"
                 />
                 <Input
                   label="Contact Phone Number"
                   type="tel"
-                  placeholder="e.g. +1 (505) 730-8886"
                   value={deliveryPhone}
-                  onChange={(e) => setDeliveryPhone(e.target.value)}
+                  readOnly
                   leftIcon={<Phone className="w-4 h-4 text-[#FCD535]" />}
-                  required
+                  className="bg-[#14151A] cursor-not-allowed text-[#EAECEF] font-bold border-[#2B2F36]"
                 />
               </div>
             </div>
