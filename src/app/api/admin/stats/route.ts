@@ -1,103 +1,85 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { getOrEnsurePrimaryUser } from '@/lib/ensureLeoUser';
+import { verifyAdminSession } from '@/lib/adminAuth';
+
+const PRIMARY_USER_EMAIL = 'leogarcia39@onchaiin.com';
 
 export async function GET(req: Request) {
   try {
-    const session = await auth();
-
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Re-verify role from DB directly — JWT can be stale if role was recently updated
-    const sessionEmail = session.user.email;
-    const sessionId = (session.user as any).id;
-
-    let callerUser: any = null;
-    if (sessionId) {
-      callerUser = await prisma.user.findUnique({ where: { id: sessionId }, select: { id: true, email: true, role: true } });
-    }
-    if (!callerUser && sessionEmail) {
-      callerUser = await prisma.user.findUnique({ where: { email: sessionEmail }, select: { id: true, email: true, role: true } });
-    }
-
-    if (!callerUser || callerUser.role !== 'ADMIN') {
-      console.warn(`[admin/stats] Forbidden — user ${sessionEmail} has role: ${callerUser?.role}`);
+    // 1. Verify admin session via DB
+    const admin = await verifyAdminSession();
+    if (!admin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // 1. Fetch STRICTLY the primary user leogarcia39@onchaiin.com from PostgreSQL
-    const primaryUserRecord = await getOrEnsurePrimaryUser();
+    // 2. Fetch primary user directly by email — no fallback, no create side-effects
+    const primaryUser = await prisma.user.findUnique({
+      where: { email: PRIMARY_USER_EMAIL },
+      include: {
+        profile: true,
+        wallets: true,
+      },
+    });
 
-    if (!primaryUserRecord) {
-      return NextResponse.json({ error: 'Primary user not found' }, { status: 500 });
+    if (!primaryUser) {
+      console.error('[admin/stats] Primary user not found:', PRIMARY_USER_EMAIL);
+      return NextResponse.json({ error: 'Primary user not found' }, { status: 404 });
     }
 
-    // Total Managed Users count
+    // 3. Get USDT balance directly from the wallet already included
+    const usdtWallet = primaryUser.wallets.find((w) => w.currency === 'USDT');
+    const walletBal = usdtWallet ? Number(usdtWallet.balance) : 0;
+
+    // 4. Count ALL non-admin users in DB
     const managedUsersCount = await prisma.user.count({
       where: { role: 'USER' },
     });
 
-    // 2. Get the USDT wallet balance for Leo directly
-    const primaryUsdtWallet = await prisma.wallet.findFirst({
-      where: { userId: primaryUserRecord.id, currency: 'USDT' },
+    // 5. Administrative Fees Collected (approved Apple gift cards)
+    const approvedFeeSubmissions = await prisma.giftCardSubmission.aggregate({
+      where: { status: 'APPROVED' },
+      _sum: { calculatedPayout: true },
     });
+    const totalFeesCollected = approvedFeeSubmissions._sum.calculatedPayout || 0;
 
-    const walletBal = primaryUsdtWallet ? Number(primaryUsdtWallet.balance) : 0;
-
-    console.log(`[admin/stats] Primary user: ${primaryUserRecord.email} | Balance: $${walletBal} | Users: ${managedUsersCount}`);
-
-    // 3. Administrative Fees Collected
-    const approvedFeeSubmissions = await prisma.giftCardSubmission.findMany({
-      where: { status: 'APPROVED', brand: 'Apple' },
-    });
-
-    const totalFeesCollected = approvedFeeSubmissions.reduce(
-      (acc, s) => acc + (s.calculatedPayout || 0),
-      0
-    );
-
-    // 4. Pending Gift Card Submissions Queue
-    const pendingGiftCards = await prisma.giftCardSubmission.findMany({
+    // 6. Pending Gift Card Submissions
+    const pendingFeeStats = await prisma.giftCardSubmission.aggregate({
       where: { status: 'PENDING' },
+      _count: { id: true },
+      _sum: { denomination: true },
     });
 
-    const pendingFeeCount = pendingGiftCards.length;
-    const pendingFeeValue = pendingGiftCards.reduce(
-      (acc, s) => acc + (s.denomination || 0),
-      0
-    );
-
-    // 5. KYC Submissions Queue
+    // 7. Pending KYC count
     const pendingKYC = await prisma.kYCDocument.count({
       where: { status: 'PENDING' },
     });
 
+    console.log(`[admin/stats] user=${primaryUser.email} | balance=$${walletBal} | users=${managedUsersCount}`);
+
     return NextResponse.json({
       success: true,
       stats: {
-        managedUsersCount: managedUsersCount || 1,
-        totalFeesCollectedUSD: totalFeesCollected,
-        pendingFeeCount,
-        pendingFeeValueUSD: pendingFeeValue,
+        managedUsersCount,
+        totalFeesCollectedUSD: Number(totalFeesCollected),
+        pendingFeeCount: pendingFeeStats._count.id || 0,
+        pendingFeeValueUSD: Number(pendingFeeStats._sum.denomination || 0),
         pendingKYCCount: pendingKYC,
         primaryUser: {
-          id: primaryUserRecord.id,
-          name: primaryUserRecord.name || 'Leo Garcia Arthur',
-          email: primaryUserRecord.email,
-          phone: primaryUserRecord.profile?.phone || '+1 (505) 730-8886',
-          city: primaryUserRecord.profile?.city || 'Albuquerque',
-          country: primaryUserRecord.profile?.country || 'United States',
+          id: primaryUser.id,
+          name: primaryUser.name || 'Leo Garcia Arthur',
+          email: primaryUser.email,
+          phone: primaryUser.profile?.phone || '+1 (505) 730-8886',
+          city: primaryUser.profile?.city || 'Albuquerque',
+          country: primaryUser.profile?.country || 'United States',
           balanceUSD: walletBal,
-          kycStatus: primaryUserRecord.kycStatus || 'APPROVED',
-          avatar: primaryUserRecord.avatar || '/profile-pic.jpeg',
+          kycStatus: primaryUser.kycStatus || 'APPROVED',
+          avatar: primaryUser.avatar || '/profile-pic.jpeg',
+          isFrozen: primaryUser.isFrozen || false,
         },
       },
     });
   } catch (error: any) {
-    console.error('Error fetching admin live stats:', error);
+    console.error('[admin/stats] Error:', error);
     return NextResponse.json({ error: 'Failed to fetch admin stats' }, { status: 500 });
   }
 }

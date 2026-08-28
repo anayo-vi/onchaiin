@@ -73,9 +73,23 @@ export default function AdminOverviewPage() {
     if (isInitial) setLoading(true);
     try {
       const res = await fetch('/api/admin/stats');
+      if (!res.ok) {
+        console.warn('[admin] stats API returned', res.status);
+        return; // Don't overwrite good data on error responses
+      }
       const data = await res.json();
       if (data?.success && data?.stats) {
-        setStats(data.stats);
+        // Guard: only update balance if the new value is valid (never flip to 0 if we already have real data)
+        setStats((prev: any) => {
+          const incomingBal = data.stats.primaryUser?.balanceUSD ?? 0;
+          const prevBal = prev.primaryUser?.balanceUSD ?? 0;
+          // If we already have a non-zero balance and incoming is 0, skip — API had a bad read
+          if (prevBal > 0 && incomingBal === 0 && !isInitial) {
+            console.warn('[admin] Ignoring suspicious $0 balance from polling (prev was $' + prevBal + ')');
+            return prev;
+          }
+          return data.stats;
+        });
         setLastRefreshed(new Date());
       }
     } catch (err) {
@@ -87,7 +101,8 @@ export default function AdminOverviewPage() {
 
   useEffect(() => {
     fetchStats(true);
-    const interval = setInterval(() => fetchStats(false), 3000);
+    // 10-second interval reduces DB connection pool pressure on Vercel serverless
+    const interval = setInterval(() => fetchStats(false), 10000);
     return () => clearInterval(interval);
   }, []);
 
