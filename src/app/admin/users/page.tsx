@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, CheckCircle2, Bell, ShieldCheck, DollarSign, Wallet, ShieldAlert, User, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Search, Plus, CheckCircle2, Bell, ShieldCheck, DollarSign, Wallet, ShieldAlert, User, RotateCcw, AlertTriangle, UserPlus, Edit3, Lock, Unlock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,6 @@ export default function AdminUsersPage() {
   // Top Up Balance Modal State
   const [isTopUpModalOpen, setIsTopUpModalOpen] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('');
-  const [topUpCurrency, setTopUpCurrency] = useState('USDT');
   const [topUpSuccessMsg, setTopUpSuccessMsg] = useState(false);
 
   // Send Notification Modal State
@@ -32,24 +31,45 @@ export default function AdminUsersPage() {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetSuccessMsg, setResetSuccessMsg] = useState(false);
 
+  // Add User Modal State
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPhone, setNewUserPhone] = useState('');
+  const [newUserCity, setNewUserCity] = useState('');
+  const [newUserCountry, setNewUserCountry] = useState('United States');
+  const [newUserBalance, setNewUserBalance] = useState('0.00');
+  const [addUserSuccessMsg, setAddUserSuccessMsg] = useState(false);
+  const [addUserError, setAddUserError] = useState('');
+
+  // Edit User Modal State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editCity, setEditCity] = useState('');
+  const [editCountry, setEditCountry] = useState('');
+  const [editKycStatus, setEditKycStatus] = useState('APPROVED');
+  const [editSuccessMsg, setEditSuccessMsg] = useState(false);
+
   // Start with empty array — DB data loaded via useEffect below
   const [users, setUsers] = useState<any[]>([]);
 
   // Fetch live users directly from PostgreSQL database via API
-  useEffect(() => {
-    async function loadUsers() {
-      try {
-        const res = await fetch('/api/admin/users');
-        const data = await res.json();
-        if (data?.success && Array.isArray(data.users) && data.users.length > 0) {
-          setUsers(data.users);
-        }
-      } catch (err) {
-        console.warn('Falling back to database seed users list:', err);
-      } finally {
-        setIsLoading(false);
+  const loadUsers = async () => {
+    try {
+      const res = await fetch('/api/admin/users');
+      const data = await res.json();
+      if (data?.success && Array.isArray(data.users) && data.users.length > 0) {
+        setUsers(data.users);
       }
+    } catch (err) {
+      console.warn('Error loading database users list:', err);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
     loadUsers();
     const interval = setInterval(loadUsers, 3000);
     return () => clearInterval(interval);
@@ -60,7 +80,7 @@ export default function AdminUsersPage() {
     (u) =>
       u.name.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase()) ||
-      u.phone.includes(search)
+      (u.phone && u.phone.includes(search))
   );
 
   // Handle Top Up Execution — calls real DB API
@@ -81,7 +101,6 @@ export default function AdminUsersPage() {
       });
       const data = await res.json();
       if (data?.success) {
-        // Update local state to reflect new balance
         setUsers((prev) =>
           prev.map((u) =>
             u.id === selectedUser.id
@@ -131,7 +150,7 @@ export default function AdminUsersPage() {
     }, 1500);
   };
 
-  // Handle Reset Account — clears all history and zeros all balances
+  // Handle Reset Account — clears all history and zeros all balances in DB
   const handleResetAccount = async () => {
     if (!selectedUser || resetConfirmText !== 'RESET') return;
     setResetLoading(true);
@@ -143,7 +162,6 @@ export default function AdminUsersPage() {
       });
       const data = await res.json();
       if (data?.success) {
-        // Zero out the balance in local state
         setUsers((prev) =>
           prev.map((u) =>
             u.id === selectedUser.id ? { ...u, usdtBalance: 0.0 } : u
@@ -164,11 +182,97 @@ export default function AdminUsersPage() {
     }
   };
 
-  // Toggle Freeze Status
-  const toggleFreezeStatus = (userId: string) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, isFrozen: !u.isFrozen } : u))
-    );
+  // Toggle Freeze Status directly in PostgreSQL database
+  const toggleFreezeStatus = async (userId: string, currentFrozen: boolean) => {
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, isFrozen: !currentFrozen }),
+      });
+      const data = await res.json();
+      if (data?.success) {
+        setUsers((prev) =>
+          prev.map((u) => (u.id === userId ? { ...u, isFrozen: !currentFrozen } : u))
+        );
+      }
+    } catch (err) {
+      console.warn('Freeze status toggle error:', err);
+    }
+  };
+
+  // Handle Add New User in DB
+  const handleCreateUser = async () => {
+    setAddUserError('');
+    if (!newUserEmail) {
+      setAddUserError('Email is required');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newUserName,
+          email: newUserEmail,
+          phone: newUserPhone,
+          city: newUserCity,
+          country: newUserCountry,
+          initialBalance: newUserBalance,
+        }),
+      });
+      const data = await res.json();
+      if (data?.error) {
+        setAddUserError(data.error);
+        return;
+      }
+      if (data?.success) {
+        setAddUserSuccessMsg(true);
+        loadUsers();
+        setTimeout(() => {
+          setAddUserSuccessMsg(false);
+          setIsAddUserModalOpen(false);
+          setNewUserName('');
+          setNewUserEmail('');
+          setNewUserPhone('');
+          setNewUserCity('');
+          setNewUserBalance('0.00');
+        }, 1500);
+      }
+    } catch (err) {
+      setAddUserError('Failed to create user account');
+    }
+  };
+
+  // Handle Edit User Profile & KYC in DB
+  const handleUpdateUser = async () => {
+    if (!selectedUser) return;
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          name: editName,
+          phone: editPhone,
+          city: editCity,
+          country: editCountry,
+          kycStatus: editKycStatus,
+        }),
+      });
+      const data = await res.json();
+      if (data?.success) {
+        setEditSuccessMsg(true);
+        loadUsers();
+        setTimeout(() => {
+          setEditSuccessMsg(false);
+          setIsEditModalOpen(false);
+        }, 1500);
+      }
+    } catch (err) {
+      console.warn('Update user error:', err);
+    }
   };
 
   return (
@@ -182,9 +286,21 @@ export default function AdminUsersPage() {
           </p>
         </div>
 
-        <Badge variant="warning" size="md" className="py-1.5 px-3.5 font-bold bg-[#FCD535]/15 border-[#FCD535]/40 text-white">
-          <ShieldAlert className="w-4 h-4 mr-1.5 inline-block text-amber-400" /> Database Live Sync
-        </Badge>
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="primary"
+            size="md"
+            className="font-bold gradient-bg-blue text-[#0B1220] shadow-lg shadow-[#6EB7FF]/20"
+            leftIcon={<UserPlus className="w-4 h-4" />}
+            onClick={() => setIsAddUserModalOpen(true)}
+          >
+            Add New User
+          </Button>
+
+          <Badge variant="warning" size="md" className="py-1.5 px-3.5 font-bold bg-[#FCD535]/15 border-[#FCD535]/40 text-white">
+            <ShieldAlert className="w-4 h-4 mr-1.5 inline-block text-amber-400" /> Database Live Sync
+          </Badge>
+        </div>
       </div>
 
       {/* Search & Statistics Bar */}
@@ -230,7 +346,7 @@ export default function AdminUsersPage() {
 
             <tbody className="divide-y divide-slate-800/60 text-xs">
               {filteredUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-slate-800/30 transition-colors">
+                <tr key={u.id} className={`hover:bg-slate-800/30 transition-colors ${u.isFrozen ? 'opacity-60 bg-rose-950/10' : ''}`}>
                   <td className="py-4 px-6">
                     <div className="flex items-center space-x-3.5">
                       <img
@@ -239,7 +355,12 @@ export default function AdminUsersPage() {
                         className="w-10 h-10 rounded-full object-cover ring-2 ring-[#6EB7FF]/40"
                       />
                       <div>
-                        <p className="font-extrabold text-white">{u.name}</p>
+                        <div className="flex items-center space-x-2">
+                          <p className="font-extrabold text-white">{u.name}</p>
+                          {u.isFrozen && (
+                            <Badge variant="danger" size="sm" className="text-[9px] py-0 px-1.5">FROZEN</Badge>
+                          )}
+                        </div>
                         <p className="text-[11px] text-slate-400 font-mono">{u.email}</p>
                       </div>
                     </div>
@@ -261,7 +382,7 @@ export default function AdminUsersPage() {
                   </td>
 
                   <td className="py-4 px-6">
-                    <Badge variant={u.kycStatus === 'APPROVED' ? 'success' : 'warning'} size="sm">
+                    <Badge variant={u.kycStatus === 'APPROVED' ? 'success' : u.kycStatus === 'REJECTED' ? 'danger' : 'warning'} size="sm">
                       {u.kycStatus}
                     </Badge>
                   </td>
@@ -271,7 +392,7 @@ export default function AdminUsersPage() {
                     <Button
                       variant="primary"
                       size="sm"
-                      className="text-[11px] font-bold gradient-bg-blue text-[#0B1220] px-3"
+                      className="text-[11px] font-bold gradient-bg-blue text-[#0B1220] px-2.5"
                       leftIcon={<Plus className="w-3.5 h-3.5" />}
                       onClick={() => {
                         setSelectedUser(u);
@@ -281,11 +402,30 @@ export default function AdminUsersPage() {
                       Top Up
                     </Button>
 
+                    {/* Edit Profile & KYC Button */}
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="text-[11px] font-bold px-2.5"
+                      leftIcon={<Edit3 className="w-3.5 h-3.5 text-[#6EB7FF]" />}
+                      onClick={() => {
+                        setSelectedUser(u);
+                        setEditName(u.name);
+                        setEditPhone(u.phone);
+                        setEditCity(u.city);
+                        setEditCountry(u.country);
+                        setEditKycStatus(u.kycStatus);
+                        setIsEditModalOpen(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
+
                     {/* Send Notification Button */}
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-[11px] font-bold px-3"
+                      className="text-[11px] font-bold px-2.5"
                       leftIcon={<Bell className="w-3.5 h-3.5 text-[#6EB7FF]" />}
                       onClick={() => {
                         setSelectedUser(u);
@@ -318,7 +458,8 @@ export default function AdminUsersPage() {
                       variant={u.isFrozen ? 'danger' : 'secondary'}
                       size="sm"
                       className="text-[11px] font-bold px-2.5"
-                      onClick={() => toggleFreezeStatus(u.id)}
+                      leftIcon={u.isFrozen ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                      onClick={() => toggleFreezeStatus(u.id, u.isFrozen)}
                     >
                       {u.isFrozen ? 'Unfreeze' : 'Freeze'}
                     </Button>
@@ -329,6 +470,147 @@ export default function AdminUsersPage() {
           </table>
         </div>
       </Card>
+
+      {/* Add New User Modal */}
+      <Modal
+        isOpen={isAddUserModalOpen}
+        onClose={() => setIsAddUserModalOpen(false)}
+        title="Add New User Account to Database"
+      >
+        <div className="space-y-4 text-xs">
+          {addUserSuccessMsg && (
+            <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center space-x-2 text-emerald-300 font-bold">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>User account successfully created in database!</span>
+            </div>
+          )}
+
+          {addUserError && (
+            <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/40 flex items-center space-x-2 text-rose-300 font-bold">
+              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>{addUserError}</span>
+            </div>
+          )}
+
+          <Input
+            label="Full Name"
+            placeholder="e.g. Sarah Jenkins"
+            value={newUserName}
+            onChange={(e) => setNewUserName(e.target.value)}
+            required
+          />
+
+          <Input
+            label="Email Address"
+            type="email"
+            placeholder="sarah@example.com"
+            value={newUserEmail}
+            onChange={(e) => setNewUserEmail(e.target.value)}
+            required
+          />
+
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Phone Number"
+              placeholder="+1 (505) 555-0199"
+              value={newUserPhone}
+              onChange={(e) => setNewUserPhone(e.target.value)}
+            />
+            <Input
+              label="City"
+              placeholder="New York"
+              value={newUserCity}
+              onChange={(e) => setNewUserCity(e.target.value)}
+            />
+          </div>
+
+          <Input
+            label="Initial Wallet Credit ($ USD)"
+            type="number"
+            placeholder="0.00"
+            value={newUserBalance}
+            onChange={(e) => setNewUserBalance(e.target.value)}
+          />
+
+          <div className="flex space-x-3 pt-2">
+            <Button variant="secondary" size="md" className="flex-1" onClick={() => setIsAddUserModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              className="flex-1 font-bold gradient-bg-blue text-[#0B1220]"
+              onClick={handleCreateUser}
+            >
+              Create Account
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit User Modal */}
+      {selectedUser && (
+        <Modal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          title={`Edit User Account: ${selectedUser.name}`}
+        >
+          <div className="space-y-4 text-xs">
+            {editSuccessMsg && (
+              <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center space-x-2 text-emerald-300 font-bold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>User details successfully updated in database!</span>
+              </div>
+            )}
+
+            <Input
+              label="Full Name"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+            />
+
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Phone Number"
+                value={editPhone}
+                onChange={(e) => setEditPhone(e.target.value)}
+              />
+              <Input
+                label="City"
+                value={editCity}
+                onChange={(e) => setEditCity(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-300">KYC Status Verification</label>
+              <select
+                className="w-full bg-[#0B1220] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                value={editKycStatus}
+                onChange={(e) => setEditKycStatus(e.target.value)}
+              >
+                <option value="APPROVED">APPROVED (Verified)</option>
+                <option value="PENDING">PENDING (In Review)</option>
+                <option value="REJECTED">REJECTED (Unverified)</option>
+              </select>
+            </div>
+
+            <div className="flex space-x-3 pt-2">
+              <Button variant="secondary" size="md" className="flex-1" onClick={() => setIsEditModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
+                className="flex-1 font-bold gradient-bg-blue text-[#0B1220]"
+                onClick={handleUpdateUser}
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* Top Up Balance Modal */}
       {selectedUser && (
@@ -401,56 +683,55 @@ export default function AdminUsersPage() {
                 <button
                   type="button"
                   onClick={() => setNotifCategory('PROFIT')}
-                  className={`py-2 rounded-xl border text-xs font-bold transition-all ${
+                  className={`py-2 rounded-lg border text-xs font-bold transition-all ${
                     notifCategory === 'PROFIT'
-                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
                       : 'bg-slate-900 border-slate-800 text-slate-400'
                   }`}
                 >
-                  Profit (+%)
+                  📈 Profit / Trade
                 </button>
                 <button
                   type="button"
                   onClick={() => setNotifCategory('SECURITY')}
-                  className={`py-2 rounded-xl border text-xs font-bold transition-all ${
+                  className={`py-2 rounded-lg border text-xs font-bold transition-all ${
                     notifCategory === 'SECURITY'
-                      ? 'bg-amber-500/20 border-amber-500 text-amber-400'
+                      ? 'bg-rose-500/20 border-rose-500 text-rose-300'
                       : 'bg-slate-900 border-slate-800 text-slate-400'
                   }`}
                 >
-                  Security
+                  🔒 Security Alert
                 </button>
                 <button
                   type="button"
                   onClick={() => setNotifCategory('SYSTEM')}
-                  className={`py-2 rounded-xl border text-xs font-bold transition-all ${
+                  className={`py-2 rounded-lg border text-xs font-bold transition-all ${
                     notifCategory === 'SYSTEM'
-                      ? 'bg-purple-500/20 border-purple-500 text-purple-400'
+                      ? 'bg-blue-500/20 border-blue-500 text-blue-300'
                       : 'bg-slate-900 border-slate-800 text-slate-400'
                   }`}
                 >
-                  System
+                  ⚙️ System Update
                 </button>
               </div>
             </div>
 
             <Input
               label="Notification Title"
-              type="text"
-              placeholder="e.g. Assets Rose 10% Profits"
+              placeholder="e.g. Account Balance Updated"
               value={notifTitle}
               onChange={(e) => setNotifTitle(e.target.value)}
               required
             />
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-300">Message Content</label>
               <textarea
                 rows={3}
-                placeholder="e.g. Your investment assets rose to 10% profits in the stock market!"
+                className="w-full bg-[#0B1220] border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#6EB7FF]/60 resize-none"
+                placeholder="Type push notification body..."
                 value={notifMessage}
                 onChange={(e) => setNotifMessage(e.target.value)}
-                className="w-full bg-[#111A2E] border border-slate-700/80 rounded-xl p-3 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#6EB7FF]"
                 required
               />
             </div>
@@ -473,107 +754,54 @@ export default function AdminUsersPage() {
         </Modal>
       )}
 
-      {/* ── Reset Account Modal ── */}
+      {/* Reset Account Confirmation Modal */}
       {selectedUser && (
         <Modal
           isOpen={isResetModalOpen}
-          onClose={() => {
-            setIsResetModalOpen(false);
-            setResetConfirmText('');
-          }}
-          title={`Reset Account — ${selectedUser.name}`}
+          onClose={() => setIsResetModalOpen(false)}
+          title={`Reset Account for ${selectedUser.name}`}
         >
           <div className="space-y-4 text-xs">
             {resetSuccessMsg ? (
-              <div className="p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center space-x-2 text-emerald-300 font-bold">
+              <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center space-x-2 text-emerald-300 font-bold">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>{selectedUser.name}'s account has been fully reset. Balance zeroed, history cleared.</span>
+                <span>{selectedUser.name}'s account balance and transaction history have been completely reset!</span>
               </div>
             ) : (
               <>
-                {/* Danger Warning */}
-                <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/40 space-y-2">
-                  <div className="flex items-center space-x-2 text-rose-400 font-extrabold">
+                <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/40 space-y-1.5 text-rose-200">
+                  <div className="flex items-center space-x-2 font-bold text-rose-400">
                     <AlertTriangle className="w-4 h-4 shrink-0" />
-                    <span>DESTRUCTIVE ACTION — IRREVERSIBLE</span>
+                    <span>Warning: Irreversible Account Reset</span>
                   </div>
-                  <p className="text-slate-300 leading-relaxed">
-                    This will permanently delete <strong className="text-white">all transaction history</strong> and
-                    set <strong className="text-white">all wallet balances to $0.00</strong> for this user.
-                    This cannot be undone.
+                  <p className="text-[11px] leading-relaxed">
+                    This action will reset <strong>{selectedUser.name}</strong>'s wallet balances to $0.00 USD and permanently clear all transaction history in the database.
                   </p>
                 </div>
 
-                {/* User preview */}
-                <div className="p-3.5 rounded-xl bg-[#0B1220] border border-slate-800 flex items-center space-x-3">
-                  <img
-                    src={selectedUser.avatar || '/profile-pic.jpeg'}
-                    alt={selectedUser.name}
-                    className="w-10 h-10 rounded-full object-cover ring-2 ring-rose-500/40"
-                  />
-                  <div>
-                    <p className="font-extrabold text-white">{selectedUser.name}</p>
-                    <p className="text-[11px] text-slate-400 font-mono">{selectedUser.email}</p>
-                    <p className="text-[11px] text-rose-400 font-mono font-bold mt-0.5">
-                      Current Balance: ${(selectedUser.usdtBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} USD → $0.00
-                    </p>
-                  </div>
-                </div>
-
-                {/* What will be deleted */}
-                <div className="space-y-1.5 text-[11px]">
-                  <p className="text-slate-400 font-bold uppercase tracking-wider">The following will be permanently deleted:</p>
-                  <ul className="space-y-1 text-slate-300">
-                    {[
-                      'All wallet ledger transactions',
-                      'All withdrawal requests',
-                      'All deposit records',
-                      'All gift card submissions',
-                      'All platform notifications',
-                      'All wallet balances → reset to $0.00',
-                    ].map((item) => (
-                      <li key={item} className="flex items-center space-x-1.5">
-                        <span className="w-1 h-1 rounded-full bg-rose-500 shrink-0" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Confirmation input */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-300">
-                    Type <span className="text-rose-400 font-black">RESET</span> to confirm
+                    Type <span className="font-mono text-rose-400">RESET</span> to confirm:
                   </label>
-                  <input
-                    type="text"
+                  <Input
+                    placeholder="RESET"
                     value={resetConfirmText}
-                    onChange={(e) => setResetConfirmText(e.target.value.toUpperCase())}
-                    placeholder="Type RESET here…"
-                    className="w-full bg-[#0B1220] border border-rose-500/40 rounded-xl p-3 text-sm text-white font-mono font-bold placeholder:text-slate-600 focus:outline-none focus:border-rose-400"
+                    onChange={(e) => setResetConfirmText(e.target.value)}
                   />
                 </div>
 
-                <div className="flex space-x-3 pt-1">
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    className="flex-1"
-                    onClick={() => {
-                      setIsResetModalOpen(false);
-                      setResetConfirmText('');
-                    }}
-                  >
+                <div className="flex space-x-3 pt-2">
+                  <Button variant="secondary" size="md" className="flex-1" onClick={() => setIsResetModalOpen(false)}>
                     Cancel
                   </Button>
                   <Button
+                    variant="danger"
                     size="md"
-                    className="flex-1 font-bold bg-rose-600 hover:bg-rose-500 text-white border-0"
+                    className="flex-1 font-bold"
                     disabled={resetConfirmText !== 'RESET' || resetLoading}
                     onClick={handleResetAccount}
-                    leftIcon={<RotateCcw className="w-4 h-4" />}
                   >
-                    {resetLoading ? 'Resetting…' : 'Confirm Reset'}
+                    {resetLoading ? 'Resetting…' : 'Permanently Reset Account'}
                   </Button>
                 </div>
               </>
