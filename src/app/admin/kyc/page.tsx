@@ -71,7 +71,7 @@ export default function AdminKYCPage() {
           <p className="text-xs text-slate-400">Inspect user identity files, passport documents, and download all user uploaded asset files</p>
         </div>
 
-        <Badge variant="warning" size="md" className="py-1.5 px-3 font-bold bg-amber-500/15 border-amber-500/40 text-amber-400">
+        <Badge variant="warning" size="md" className="py-1.5 px-3 font-bold bg-[#FCD535]/15 border-[#FCD535]/40 text-white">
           <ShieldAlert className="w-4 h-4 mr-1.5 inline-block text-amber-400" /> Asset Downloader Suite
         </Badge>
       </div>

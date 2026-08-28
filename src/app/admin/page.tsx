@@ -211,7 +211,7 @@ export default function AdminOverviewPage() {
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </button>
-          <Badge variant="warning" size="md" className="py-1.5 px-3 font-bold bg-amber-500/15 border-amber-500/40 text-amber-400">
+          <Badge variant="warning" size="md" className="py-1.5 px-3 font-bold bg-[#FCD535]/15 border-[#FCD535]/40 text-white">
             <ShieldAlert className="w-4 h-4 mr-1.5 inline-block text-amber-400" /> Platform Superuser
           </Badge>
         </div>
