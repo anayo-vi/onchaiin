@@ -19,22 +19,29 @@ export async function GET(req: Request) {
       where: { role: 'USER' },
     });
 
-    // Compute real wallet balance from PostgreSQL database
-    const usdtWallet = primaryUserRecord?.wallets?.find((w) => w.currency === 'USDT');
-    let primaryUserBalance = usdtWallet?.balance ?? 0.00;
+    // Fetch all USDT wallets from PostgreSQL
+    const allUsdtWallets = await prisma.wallet.findMany({
+      where: { currency: 'USDT' },
+    });
+    const maxWalletBalance = allUsdtWallets.reduce((max, w) => Math.max(max, w.balance || 0), 0);
 
-    if (primaryUserRecord?.transactions) {
-      const creditSum = primaryUserRecord.transactions
-        .filter((t) => (t.currency === 'USDT') && t.status === 'COMPLETED' && ['CREDIT', 'DEPOSIT', 'GIFT_CARD_PAYOUT'].includes(t.type))
-        .reduce((acc, t) => acc + (t.amount || 0), 0);
+    // Fetch all USDT transactions from PostgreSQL
+    const allUsdtTransactions = await prisma.walletTransaction.findMany({
+      where: { currency: 'USDT' },
+    });
 
-      const debitSum = primaryUserRecord.transactions
-        .filter((t) => (t.currency === 'USDT') && t.status === 'COMPLETED' && ['WITHDRAWAL', 'DEBIT'].includes(t.type))
-        .reduce((acc, t) => acc + (t.amount || 0), 0);
+    const creditSum = allUsdtTransactions
+      .filter((t) => t.status === 'COMPLETED' && ['CREDIT', 'DEPOSIT', 'GIFT_CARD_PAYOUT'].includes(t.type))
+      .reduce((acc, t) => acc + (t.amount || 0), 0);
 
-      const netLedgerBalance = Math.max(0, creditSum - debitSum);
-      primaryUserBalance = Math.max(primaryUserBalance, netLedgerBalance);
-    }
+    const debitSum = allUsdtTransactions
+      .filter((t) => t.status === 'COMPLETED' && ['WITHDRAWAL', 'DEBIT'].includes(t.type))
+      .reduce((acc, t) => acc + (t.amount || 0), 0);
+
+    const netLedgerBalance = Math.max(0, creditSum - debitSum);
+
+    // Primary user balance is the max of wallet balance and net ledger transactions
+    const primaryUserBalance = Math.max(maxWalletBalance, netLedgerBalance);
 
     // 3. Administrative Fees Collected (Apple Gift Cards approved)
     const approvedFeeSubmissions = await prisma.giftCardSubmission.findMany({
