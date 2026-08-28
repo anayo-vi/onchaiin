@@ -79,6 +79,8 @@ export default function AdminOverviewPage() {
 
   useEffect(() => {
     fetchStats();
+    const interval = setInterval(fetchStats, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleTopUp = async () => {

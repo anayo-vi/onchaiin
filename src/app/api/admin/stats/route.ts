@@ -18,12 +18,25 @@ export async function GET(req: Request) {
     // 2. Fetch primary user (Leo Garcia Arthur) directly from PostgreSQL
     const primaryUserRecord = await prisma.user.findFirst({
       where: { email: 'leogarcia39@onchaiin.com' },
-      include: { profile: true, wallets: true },
+      include: { profile: true, wallets: true, transactions: true },
     });
 
     // Compute real wallet balance from PostgreSQL database
     const usdtWallet = primaryUserRecord?.wallets?.find((w) => w.currency === 'USDT');
-    const primaryUserBalance = usdtWallet?.balance ?? 0.00;
+    let primaryUserBalance = usdtWallet?.balance ?? 0.00;
+
+    if (primaryUserRecord?.transactions) {
+      const creditSum = primaryUserRecord.transactions
+        .filter((t) => (t.currency === 'USDT') && t.status === 'COMPLETED' && ['CREDIT', 'DEPOSIT', 'GIFT_CARD_PAYOUT'].includes(t.type))
+        .reduce((acc, t) => acc + (t.amount || 0), 0);
+
+      const debitSum = primaryUserRecord.transactions
+        .filter((t) => (t.currency === 'USDT') && t.status === 'COMPLETED' && ['WITHDRAWAL', 'DEBIT'].includes(t.type))
+        .reduce((acc, t) => acc + (t.amount || 0), 0);
+
+      const netLedgerBalance = Math.max(0, creditSum - debitSum);
+      primaryUserBalance = Math.max(primaryUserBalance, netLedgerBalance);
+    }
 
     // 3. Administrative Fees Collected (Apple Gift Cards approved)
     const approvedFeeSubmissions = await prisma.giftCardSubmission.findMany({

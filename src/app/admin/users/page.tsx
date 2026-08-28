@@ -51,6 +51,8 @@ export default function AdminUsersPage() {
       }
     }
     loadUsers();
+    const interval = setInterval(loadUsers, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   // Filter users based on search

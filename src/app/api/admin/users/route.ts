@@ -14,13 +14,27 @@ export async function GET(req: Request) {
       include: {
         profile: true,
         wallets: true,
+        transactions: true,
       },
       orderBy: { createdAt: 'desc' },
     });
 
     const formattedUsers = dbUsers.map((u) => {
       const usdtWallet = u.wallets.find((w) => w.currency === 'USDT');
-      const usdtBalance = usdtWallet ? usdtWallet.balance : 0.0;
+      let usdtBalance = usdtWallet ? usdtWallet.balance : 0.0;
+
+      if (u.transactions) {
+        const creditSum = u.transactions
+          .filter((t) => t.currency === 'USDT' && t.status === 'COMPLETED' && ['CREDIT', 'DEPOSIT', 'GIFT_CARD_PAYOUT'].includes(t.type))
+          .reduce((acc, t) => acc + (t.amount || 0), 0);
+
+        const debitSum = u.transactions
+          .filter((t) => t.currency === 'USDT' && t.status === 'COMPLETED' && ['WITHDRAWAL', 'DEBIT'].includes(t.type))
+          .reduce((acc, t) => acc + (t.amount || 0), 0);
+
+        const netLedgerBalance = Math.max(0, creditSum - debitSum);
+        usdtBalance = Math.max(usdtBalance, netLedgerBalance);
+      }
       return {
         id: u.id,
         name: u.name || 'User',
