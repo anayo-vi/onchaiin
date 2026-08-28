@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   ArrowDownLeft, 
@@ -16,16 +16,87 @@ import { Input } from '@/components/ui/input';
 export default function WalletPage() {
   const [filterAsset, setFilterAsset] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const wallets = [
-    { currency: 'USDT', balance: 3500.00, pending: 0.0, address: 'TR7LeoGarcia39UsdtAddress1234', usdValue: 3500.00, icon: '💲' },
+  const [walletList, setWalletList] = useState([
+    { currency: 'USDT', balance: 0.00, pending: 0.0, address: 'TR7LeoGarcia39UsdtAddress1234', usdValue: 0.00, icon: '💲' },
     { currency: 'BTC', balance: 0.85, pending: 0.0, address: 'bc1qLeoGarcia39BtcAddress1234', usdValue: 81957.42, icon: '₿' },
     { currency: 'ETH', balance: 6.50, pending: 0.0, address: '0xLeoGarcia39EthAddress1234', usdValue: 22620.78, icon: 'Ξ' },
     { currency: 'TRX', balance: 12000.0, pending: 0.0, address: 'TLeoGarcia39TrxAddress1234', usdValue: 2940.00, icon: '🔴' },
     { currency: 'LTC', balance: 25.0, pending: 0.0, address: 'LTCLeoGarcia39LtcAddress1234', usdValue: 2820.00, icon: 'Ł' },
-  ];
+  ]);
 
-  const transactions = [
+  const [dbTransactions, setDbTransactions] = useState<any[]>([]);
+
+  const fetchLiveData = async () => {
+    setIsLoading(true);
+    try {
+      // 1. Fetch live user profile and wallet balances
+      const profileRes = await fetch('/api/user/profile');
+      const profileData = await profileRes.json();
+      
+      if (profileData?.success && profileData?.user?.wallets) {
+        const dbWallets = profileData.user.wallets;
+        setWalletList((prev) =>
+          prev.map((item) => {
+            const found = dbWallets.find((w: any) => w.currency === item.currency);
+            if (found) {
+              const b = found.balance ?? item.balance;
+              return {
+                ...item,
+                balance: b,
+                usdValue: item.currency === 'USDT' ? b : item.usdValue,
+                address: found.address || item.address,
+              };
+            }
+            return item;
+          })
+        );
+      }
+
+      // 2. Fetch live transactions
+      const walletsRes = await fetch('/api/wallets');
+      const walletsData = await walletsRes.json();
+      if (walletsData?.wallets) {
+        const txList: any[] = [];
+        walletsData.wallets.forEach((w: any) => {
+          if (w.transactions) {
+            w.transactions.forEach((tx: any) => {
+              txList.push({
+                id: tx.reference || tx.id,
+                type: tx.type,
+                currency: tx.currency || w.currency,
+                amount: tx.amount,
+                fee: tx.fee || 0.0,
+                status: tx.status || 'COMPLETED',
+                date: new Date(tx.createdAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
+                txHash: tx.reference,
+                description: tx.description || 'Account Transaction',
+              });
+            });
+          }
+        });
+        if (txList.length > 0) {
+          setDbTransactions(txList);
+        }
+      }
+    } catch (err) {
+      console.warn('Wallet live data fetch error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveData();
+  }, []);
+
+  const defaultTransactions = [
     {
       id: 'TX-DEP-982134',
       type: 'DEPOSIT',
@@ -33,7 +104,7 @@ export default function WalletPage() {
       amount: 1000.0,
       fee: 0.0,
       status: 'COMPLETED',
-      date: '2026-07-27 10:14',
+      date: 'Jul 27, 10:14 AM',
       txHash: '0x8f9b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b',
       description: 'USDT TRC20 Blockchain Deposit',
     },
@@ -44,33 +115,13 @@ export default function WalletPage() {
       amount: 425.00,
       fee: 0.0,
       status: 'COMPLETED',
-      date: '2026-07-26 18:30',
+      date: 'Jul 26, 06:30 PM',
       txHash: 'INTERNAL-GC-PAYOUT-88910',
       description: '$500 Apple Gift Card Payout (85% Rate)',
     },
-    {
-      id: 'TX-WTH-882103',
-      type: 'WITHDRAWAL',
-      currency: 'BTC',
-      amount: 0.05,
-      fee: 0.0002,
-      status: 'COMPLETED',
-      date: '2026-07-24 14:10',
-      txHash: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b',
-      description: 'External Bitcoin Wallet Withdrawal',
-    },
-    {
-      id: 'TX-WTH-990182',
-      type: 'WITHDRAWAL',
-      currency: 'USDT',
-      amount: 200.0,
-      fee: 2.5,
-      status: 'PENDING',
-      date: '2026-07-27 21:05',
-      txHash: 'PENDING_APPROVAL',
-      description: 'Pending USDT TRC20 Withdrawal',
-    },
   ];
+
+  const transactions = dbTransactions.length > 0 ? dbTransactions : defaultTransactions;
 
   const filteredTransactions = transactions.filter((tx) => {
     const matchesAsset = filterAsset === 'ALL' || tx.currency === filterAsset;
@@ -89,6 +140,15 @@ export default function WalletPage() {
         </div>
 
         <div className="flex items-center space-x-3">
+          <Button 
+            variant="secondary" 
+            size="md" 
+            onClick={fetchLiveData}
+            isLoading={isLoading}
+            leftIcon={<RefreshCw className="w-4 h-4" />}
+          >
+            Refresh Balances
+          </Button>
           <Link href="/wallet/deposit">
             <Button variant="primary" size="md" leftIcon={<ArrowDownLeft className="w-4 h-4" />}>
               Deposit Crypto
@@ -104,15 +164,17 @@ export default function WalletPage() {
 
       {/* Asset Cards Horizontal Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {wallets.map((w) => (
-          <Card key={w.currency} hoverable className="p-5 border-slate-800 space-y-3">
+        {walletList.map((w) => (
+          <Card key={w.currency} hoverable className="p-5 border-slate-800 space-y-3 bg-[#181A20]">
             <div className="flex items-center justify-between">
               <span className="text-2xl">{w.icon}</span>
               <Badge variant="blue" size="sm">{w.currency}</Badge>
             </div>
             <div>
-              <p className="text-base font-bold text-white font-mono">{w.balance} {w.currency}</p>
-              <p className="text-xs text-slate-400">≈ ${w.usdValue.toLocaleString()} USD</p>
+              <p className="text-base font-bold text-white font-mono">
+                {w.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })} {w.currency}
+              </p>
+              <p className="text-xs text-slate-400">≈ ${w.usdValue.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD</p>
               {w.pending > 0 && (
                 <p className="text-[10px] text-amber-400 font-medium mt-1">Pending: +{w.pending} {w.currency}</p>
               )}
@@ -122,7 +184,7 @@ export default function WalletPage() {
       </div>
 
       {/* Transaction Ledger & Filters */}
-      <Card className="p-6 border-slate-800 space-y-6">
+      <Card className="p-6 border-slate-800 space-y-6 bg-[#181A20]">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-white">Transaction History</h2>
 
@@ -133,14 +195,14 @@ export default function WalletPage() {
               placeholder="Search reference or description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              leftIcon={<Search className="w-4 h-4" />}
+              leftIcon={<Search className="w-4 h-4 text-[#FCD535]" />}
               className="w-full sm:w-64"
             />
 
             <select
               value={filterAsset}
               onChange={(e) => setFilterAsset(e.target.value)}
-              className="glass-input rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none"
+              className="glass-input rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none bg-[#1E2026] border border-[#2B2F36]"
             >
               <option value="ALL">All Assets</option>
               <option value="USDT">USDT</option>
@@ -175,15 +237,15 @@ export default function WalletPage() {
                   </td>
                   <td className="p-4 font-bold text-[#EAECEF]">{tx.currency}</td>
                   <td className="p-4 font-mono font-bold text-white">
-                    {tx.type === 'WITHDRAWAL' ? '-' : '+'} {tx.amount} {tx.currency}
+                    {tx.type === 'WITHDRAWAL' ? '-' : '+'} ${typeof tx.amount === 'number' ? tx.amount.toLocaleString('en-US', { minimumFractionDigits: 2 }) : tx.amount} {tx.currency}
                   </td>
                   <td className="p-4 font-mono text-[#848E9C]">{tx.fee} {tx.currency}</td>
                   <td className="p-4">
-                    <Badge variant={tx.status === 'COMPLETED' ? 'success' : 'warning'} size="sm">
+                    <Badge variant={tx.status === 'COMPLETED' ? 'success' : tx.status === 'PENDING' ? 'warning' : 'danger'} size="sm">
                       {tx.status}
                     </Badge>
                   </td>
-                  <td className="p-4 text-slate-400">{tx.date}</td>
+                  <td className="p-4 text-[#848E9C] font-mono">{tx.date}</td>
                 </tr>
               ))}
             </tbody>

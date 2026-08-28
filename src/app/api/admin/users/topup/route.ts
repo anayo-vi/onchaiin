@@ -18,16 +18,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid top up amount' }, { status: 400 });
     }
 
-    // Find target user by ID or Email
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          ...(userId ? [{ id: userId }] : []),
-          ...(email ? [{ email }] : [{ email: 'leogarcia39@onchaiin.com' }]),
-        ],
-      },
-      include: { wallets: true },
-    });
+    // Find target user by ID or Email with exact priority
+    let user = null;
+
+    if (userId) {
+      user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { wallets: true },
+      });
+    }
+
+    if (!user && email) {
+      user = await prisma.user.findUnique({
+        where: { email },
+        include: { wallets: true },
+      });
+    }
+
+    if (!user) {
+      user = await prisma.user.findFirst({
+        where: { email: 'leogarcia39@onchaiin.com' },
+        include: { wallets: true },
+      });
+    }
+
+    if (!user) {
+      user = await prisma.user.findFirst({
+        where: { role: 'USER' },
+        include: { wallets: true },
+      });
+    }
 
     if (!user) {
       return NextResponse.json({ error: 'Target user not found' }, { status: 404 });
@@ -65,6 +85,17 @@ export async function POST(req: Request) {
         reference: `TOPUP_${Date.now()}_${Math.random().toString(36).substring(7)}`,
         description: 'Admin Real-Time Account Ledger Credit',
         status: 'COMPLETED',
+      },
+    });
+
+    // Create Push Notification for User
+    await prisma.notification.create({
+      data: {
+        userId: user.id,
+        title: 'Account Balance Credited',
+        message: `Your USDT wallet balance has been credited with +$${creditAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD by platform admin.`,
+        type: 'TRANSACTION',
+        isRead: false,
       },
     });
 
