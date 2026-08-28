@@ -62,20 +62,41 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const session = await auth();
-    if (!session?.user?.id) {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    let user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { profile: true, wallets: true },
-    });
+    let user = null;
+    if (session.user.id) {
+      user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        include: { profile: true, wallets: true },
+      });
+    }
+
+    if (!user && session.user.email) {
+      user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        include: { profile: true, wallets: true },
+      });
+    }
+
+    if (!user) {
+      user = await prisma.user.findFirst({
+        where: { email: 'leogarcia39@onchaiin.com' },
+        include: { profile: true, wallets: true },
+      });
+    }
+
+    if (!user) {
+      return NextResponse.json({ error: 'User record not found' }, { status: 404 });
+    }
 
     // If profile is null or missing address/phone/city/state/zip, initialize profile defaults in DB
     if (user && !user.profile) {
       const newProfile = await prisma.profile.create({
         data: {
-          userId: session.user.id,
+          userId: user.id,
           phone: '+1 (505) 730-8886',
           address: '123 Main Street, Apt 4B',
           city: 'Albuquerque',

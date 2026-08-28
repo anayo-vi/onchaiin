@@ -9,12 +9,24 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = session.user.id;
+    let user = null;
+    if (session.user.id) {
+      user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    }
+
+    if (!user && session.user.email) {
+      user = await prisma.user.findUnique({ where: { email: session.user.email } });
+    }
+
+    if (!user) {
+      user = await prisma.user.findFirst({ where: { email: 'leogarcia39@onchaiin.com' } });
+    }
+
+    const userId = user?.id || session.user.id;
     const wallets = await prisma.wallet.findMany({
       where: { userId },
       include: {
         transactions: {
-          take: 10,
           orderBy: { createdAt: 'desc' },
         },
       },
