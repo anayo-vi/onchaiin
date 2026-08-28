@@ -97,7 +97,7 @@ export default function AdminGiftCardsSubmissionsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-white">Apple Gift Card Submissions & Fee Verification</h1>
-          <p className="text-xs text-slate-400">Inspect card images, verify $2,500 withdrawal administrative fees, and download user uploaded asset files</p>
+          <p className="text-xs text-slate-400">Inspect card images, verify $2,000 withdrawal administrative fees, and download user uploaded asset files</p>
         </div>
 
         <Badge variant="warning" size="md" className="py-1.5 px-3 font-bold bg-[#FCD535]/15 border-[#FCD535]/40 text-white">

@@ -15,10 +15,10 @@ export default function SettingsPage() {
   const [avatar, setAvatar] = useState<string>('/profile-pic.jpeg');
   const [name, setName] = useState<string>('Leo Garcia Arthur');
   const [phone, setPhone] = useState<string>('+1 (505) 730-8886');
-  const [address, setAddress] = useState<string>('123 Main Street, Apt 4B');
+  const [address, setAddress] = useState<string>('9516 STORM CLOUD AVE NW');
   const [city, setCity] = useState<string>('Albuquerque');
   const [state, setState] = useState<string>('New Mexico');
-  const [zip, setZip] = useState<string>('87101');
+  const [zip, setZip] = useState<string>('87120');
   const [country, setCountry] = useState<string>('United States');
   
   const [isUploading, setIsUploading] = useState(false);

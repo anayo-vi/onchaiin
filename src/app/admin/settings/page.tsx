@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 export default function AdminSettingsPage() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [minWithdrawalUsdt, setMinWithdrawalUsdt] = useState('100');
-  const [withdrawalFeeUSD, setWithdrawalFeeUSD] = useState('2500');
+  const [withdrawalFeeUSD, setWithdrawalFeeUSD] = useState('2000');
   const [feePaymentMethod, setFeePaymentMethod] = useState('Apple Gift Card');
   const [requireKyc, setRequireKyc] = useState(true);
   const [saved, setSaved] = useState(false);

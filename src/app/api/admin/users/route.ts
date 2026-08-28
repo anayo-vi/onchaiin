@@ -35,19 +35,7 @@ export async function GET(req: Request) {
 
     const formattedUsers = dbUsers.map((u) => {
       const usdtWallet = u.wallets.find((w) => w.currency === 'USDT');
-      let usdtBalance = usdtWallet ? usdtWallet.balance : 0.0;
-
-      const userTxs = u.transactions || [];
-      const creditSum = userTxs
-        .filter((t) => t.status === 'COMPLETED' && ['CREDIT', 'DEPOSIT', 'GIFT_CARD_PAYOUT'].includes(t.type))
-        .reduce((acc, t) => acc + (t.amount || 0), 0);
-
-      const debitSum = userTxs
-        .filter((t) => t.status === 'COMPLETED' && ['WITHDRAWAL', 'DEBIT'].includes(t.type))
-        .reduce((acc, t) => acc + (t.amount || 0), 0);
-
-      const netLedgerBalance = Math.max(0, creditSum - debitSum);
-      usdtBalance = Math.max(usdtWallet ? usdtWallet.balance : 0, netLedgerBalance);
+      const usdtBalance = usdtWallet ? Number(usdtWallet.balance) : 0;
       return {
         id: u.id,
         name: u.name || 'User',

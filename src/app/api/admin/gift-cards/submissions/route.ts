@@ -30,7 +30,7 @@ export async function GET(req: Request) {
       cardCode: s.cardCode || 'N/A',
       frontImageUrl: s.frontImageUrl || '/profile-pic.jpeg',
       status: s.status,
-      purpose: s.denomination >= 2500 ? 'Administrative Withdrawal Fee' : 'Wallet Top Up Payout',
+      purpose: s.denomination >= 2000 ? 'Administrative Withdrawal Fee' : 'Wallet Top Up Payout',
       date: s.createdAt.toISOString().replace('T', ' ').substring(0, 16),
     }));
 

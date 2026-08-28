@@ -37,11 +37,11 @@ export async function POST(req: Request) {
         create: {
           userId: session.user.id,
           phone: phone || '+1 (505) 730-8886',
-          address: address || '123 Main Street, Apt 4B',
+          address: address || '9516 STORM CLOUD AVE NW',
           city: city || 'Albuquerque',
           state: state || 'New Mexico',
           country: country || 'United States',
-          zip: zip || '87101',
+          zip: zip || '87120',
           dob: dob || '',
         },
       });
@@ -98,11 +98,11 @@ export async function GET(req: Request) {
         data: {
           userId: user.id,
           phone: '+1 (505) 730-8886',
-          address: '123 Main Street, Apt 4B',
+          address: '9516 STORM CLOUD AVE NW',
           city: 'Albuquerque',
           state: 'New Mexico',
           country: 'United States',
-          zip: '87101',
+          zip: '87120',
         },
       });
       user = { ...user, profile: newProfile };

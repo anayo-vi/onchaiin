@@ -29,11 +29,11 @@ export async function POST(req: Request) {
 
     const cardsToProcess = Array.isArray(giftCards) && giftCards.length > 0
       ? giftCards
-      : [{ amount: 2500, frontImage: body?.frontImage || body?.imageUrl }];
+      : [{ amount: 2000, frontImage: body?.frontImage || body?.imageUrl }];
 
     const createdSubmissions = [];
     for (const card of cardsToProcess) {
-      const amount = parseFloat(card.amount) || 2500;
+      const amount = parseFloat(card.amount) || 2000;
 
       const submission = await prisma.giftCardSubmission.create({
         data: {
