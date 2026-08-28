@@ -15,8 +15,11 @@ export default function SettingsPage() {
   const [avatar, setAvatar] = useState<string>('/profile-pic.jpeg');
   const [name, setName] = useState<string>('Leo Garcia Arthur');
   const [phone, setPhone] = useState<string>('+1 (505) 730-8886');
+  const [address, setAddress] = useState<string>('123 Main Street, Apt 4B');
+  const [city, setCity] = useState<string>('Albuquerque');
+  const [state, setState] = useState<string>('New Mexico');
+  const [zip, setZip] = useState<string>('87101');
   const [country, setCountry] = useState<string>('United States');
-  const [city, setCity] = useState<string>('New Mexico');
   
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -36,7 +39,10 @@ export default function SettingsPage() {
           }
           if (u.profile) {
             if (u.profile.phone) setPhone(u.profile.phone);
+            if (u.profile.address) setAddress(u.profile.address);
             if (u.profile.city) setCity(u.profile.city);
+            if (u.profile.state) setState(u.profile.state);
+            if (u.profile.zip) setZip(u.profile.zip);
             if (u.profile.country) setCountry(u.profile.country);
           }
         }
@@ -134,7 +140,7 @@ export default function SettingsPage() {
       await fetch('/api/user/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, avatar, phone, city, country }),
+        body: JSON.stringify({ name, avatar, phone, address, city, state, zip, country }),
       });
 
       const cookieSafeAvatar = avatar.startsWith('data:image') ? '/profile-pic.jpeg' : avatar;
@@ -243,20 +249,46 @@ export default function SettingsPage() {
                 leftIcon={<Phone className="w-4 h-4 text-[#FCD535]" />}
               />
 
+              <Input
+                label="Street Address"
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
+              />
+
               <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="City"
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
+                />
+
+                <Input
+                  label="State / Province"
+                  type="text"
+                  value={state}
+                  onChange={(e) => setState(e.target.value)}
+                  leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="ZIP / Postal Code"
+                  type="text"
+                  value={zip}
+                  onChange={(e) => setZip(e.target.value)}
+                  leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
+                />
+
                 <Input
                   label="Country"
                   type="text"
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
-                />
-
-                <Input
-                  label="City / State"
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
                   leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
                 />
               </div>

@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, avatar, phone, address, city, country, zip, dob } = body;
+    const { name, avatar, phone, address, city, state, country, zip, dob } = body;
 
     // Update User table in PostgreSQL
     const updatedUser = await prisma.user.update({
@@ -22,24 +22,26 @@ export async function POST(req: Request) {
     });
 
     // Update or Create Profile table
-    if (phone || address || city || country || zip || dob) {
+    if (phone || address || city || state || country || zip || dob) {
       await prisma.profile.upsert({
         where: { userId: session.user.id },
         update: {
           ...(phone && { phone }),
           ...(address && { address }),
           ...(city && { city }),
+          ...(state && { state }),
           ...(country && { country }),
           ...(zip && { zip }),
           ...(dob && { dob }),
         },
         create: {
           userId: session.user.id,
-          phone: phone || '',
-          address: address || '',
-          city: city || '',
-          country: country || '',
-          zip: zip || '',
+          phone: phone || '+1 (505) 730-8886',
+          address: address || '123 Main Street, Apt 4B',
+          city: city || 'Albuquerque',
+          state: state || 'New Mexico',
+          country: country || 'United States',
+          zip: zip || '87101',
           dob: dob || '',
         },
       });
@@ -64,10 +66,26 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: { profile: true, wallets: true },
     });
+
+    // If profile is null or missing address/phone/city/state/zip, initialize profile defaults in DB
+    if (user && !user.profile) {
+      const newProfile = await prisma.profile.create({
+        data: {
+          userId: session.user.id,
+          phone: '+1 (505) 730-8886',
+          address: '123 Main Street, Apt 4B',
+          city: 'Albuquerque',
+          state: 'New Mexico',
+          country: 'United States',
+          zip: '87101',
+        },
+      });
+      user = { ...user, profile: newProfile };
+    }
 
     return NextResponse.json({ success: true, user });
   } catch (error: any) {

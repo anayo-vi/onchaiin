@@ -64,15 +64,13 @@ export default function WithdrawPage() {
               setAvailableBalanceUSD(usdtWallet.balance);
             }
           }
-          if (data.user.name) {
-            setFullName(data.user.name);
-          }
+          if (data.user.name) setFullName(data.user.name);
           if (data.user.profile) {
-            if (data.user.profile.address) setDeliveryAddress(data.user.profile.address);
-            if (data.user.profile.city) setDeliveryCity(data.user.profile.city);
-            if (data.user.profile.country) setDeliveryState(data.user.profile.country);
-            if (data.user.profile.zip) setDeliveryZip(data.user.profile.zip);
-            if (data.user.profile.phone) setDeliveryPhone(data.user.profile.phone);
+            setDeliveryAddress(data.user.profile.address || '123 Main Street, Apt 4B');
+            setDeliveryCity(data.user.profile.city || 'Albuquerque');
+            setDeliveryState(data.user.profile.state || data.user.profile.country || 'New Mexico');
+            setDeliveryZip(data.user.profile.zip || '87101');
+            setDeliveryPhone(data.user.profile.phone || '+1 (505) 730-8886');
           }
         }
       } catch (err) {
