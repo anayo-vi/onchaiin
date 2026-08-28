@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getOrEnsurePrimaryUser } from '@/lib/ensureLeoUser';
 
 export async function POST(req: Request) {
   try {
@@ -15,9 +16,7 @@ export async function POST(req: Request) {
     }
 
     if (!targetUserId) {
-      const leoUser = await prisma.user.findFirst({
-        where: { email: 'leogarcia39@onchaiin.com' },
-      });
+      const leoUser = await getOrEnsurePrimaryUser();
       targetUserId = leoUser?.id;
     }
 

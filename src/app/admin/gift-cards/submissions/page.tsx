@@ -32,6 +32,8 @@ export default function AdminGiftCardsSubmissionsPage() {
       }
     }
     loadSubmissions();
+    const interval = setInterval(loadSubmissions, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   // Calculate real statistical metrics dynamically from PostgreSQL database records
