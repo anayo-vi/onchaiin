@@ -75,21 +75,7 @@ export default function AdminOverviewPage() {
       const res = await fetch('/api/admin/stats');
       const data = await res.json();
       if (data?.success && data?.stats) {
-        setStats((prev: any) => {
-          const fetchedBal = data.stats.primaryUser?.balanceUSD;
-          const prevBal = prev?.primaryUser?.balanceUSD;
-          const finalBal = (fetchedBal !== undefined && fetchedBal > 0)
-            ? fetchedBal
-            : (prevBal !== undefined && prevBal > 0 ? prevBal : fetchedBal ?? 0);
-
-          return {
-            ...data.stats,
-            primaryUser: {
-              ...data.stats.primaryUser,
-              balanceUSD: finalBal,
-            },
-          };
-        });
+        setStats(data.stats);
         setLastRefreshed(new Date());
       }
     } catch (err) {

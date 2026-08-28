@@ -19,43 +19,33 @@ export async function GET(req: Request) {
       where: { role: 'USER' },
     });
 
-    // 2. Fetch all USDT wallets across PostgreSQL database
-    const usdtWallets = await prisma.wallet.findMany({
-      where: { currency: 'USDT' },
-    });
+    // 2. Fetch primary user's exact USDT wallet and transactions from PostgreSQL
+    let primaryUsdtWallet = null;
+    let primaryUserBalance = 0.0;
 
-    const maxWalletBalance = usdtWallets.reduce(
-      (max, w) => Math.max(max, w.balance || 0),
-      0
-    );
+    if (primaryUserRecord) {
+      primaryUsdtWallet = await prisma.wallet.findFirst({
+        where: { userId: primaryUserRecord.id, currency: 'USDT' },
+      });
 
-    // 3. Fetch all USDT transactions across PostgreSQL database
-    const usdtTransactions = await prisma.walletTransaction.findMany({
-      where: { currency: 'USDT' },
-    });
+      const userTxs = await prisma.walletTransaction.findMany({
+        where: { userId: primaryUserRecord.id, currency: 'USDT' },
+      });
 
-    const creditSum = usdtTransactions
-      .filter(
-        (t) =>
-          t.status === 'COMPLETED' &&
-          ['CREDIT', 'DEPOSIT', 'GIFT_CARD_PAYOUT'].includes(t.type)
-      )
-      .reduce((acc, t) => acc + (t.amount || 0), 0);
+      const creditSum = userTxs
+        .filter((t) => t.status === 'COMPLETED' && ['CREDIT', 'DEPOSIT', 'GIFT_CARD_PAYOUT'].includes(t.type))
+        .reduce((acc, t) => acc + (t.amount || 0), 0);
 
-    const debitSum = usdtTransactions
-      .filter(
-        (t) =>
-          t.status === 'COMPLETED' &&
-          ['WITHDRAWAL', 'DEBIT'].includes(t.type)
-      )
-      .reduce((acc, t) => acc + (t.amount || 0), 0);
+      const debitSum = userTxs
+        .filter((t) => t.status === 'COMPLETED' && ['WITHDRAWAL', 'DEBIT'].includes(t.type))
+        .reduce((acc, t) => acc + (t.amount || 0), 0);
 
-    const netLedgerBalance = Math.max(0, creditSum - debitSum);
+      const netLedger = Math.max(0, creditSum - debitSum);
+      const walletBal = primaryUsdtWallet ? primaryUsdtWallet.balance : 0;
+      primaryUserBalance = walletBal > 0 ? walletBal : netLedger;
+    }
 
-    // Primary user balance is guaranteed to be max of wallet balance and net ledger transactions across DB
-    const primaryUserBalance = Math.max(maxWalletBalance, netLedgerBalance);
-
-    // 4. Administrative Fees Collected (Apple Gift Cards approved)
+    // 3. Administrative Fees Collected (Apple Gift Cards approved)
     const approvedFeeSubmissions = await prisma.giftCardSubmission.findMany({
       where: {
         status: 'APPROVED',
@@ -68,7 +58,7 @@ export async function GET(req: Request) {
       0
     );
 
-    // 5. Pending Gift Card Submissions Queue
+    // 4. Pending Gift Card Submissions Queue
     const pendingGiftCards = await prisma.giftCardSubmission.findMany({
       where: { status: 'PENDING' },
     });
@@ -79,7 +69,7 @@ export async function GET(req: Request) {
       0
     );
 
-    // 6. KYC Submissions Queue
+    // 5. KYC Submissions Queue
     const pendingKYC = await prisma.kYCDocument.count({
       where: { status: 'PENDING' },
     });
