@@ -41,7 +41,8 @@ export async function GET(req: Request) {
       .reduce((acc, t) => acc + (t.amount || 0), 0);
 
     const netLedgerBalance = Math.max(0, creditSum - debitSum);
-    const primaryUserBalance = primaryUsdtWallet ? Math.max(0, primaryUsdtWallet.balance) : netLedgerBalance;
+    const walletBal = primaryUsdtWallet ? primaryUsdtWallet.balance : 0;
+    const primaryUserBalance = Math.max(walletBal, netLedgerBalance);
 
     // 3. Administrative Fees Collected (Apple Gift Cards approved)
     const approvedFeeSubmissions = await prisma.giftCardSubmission.findMany({

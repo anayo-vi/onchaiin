@@ -99,7 +99,7 @@ export default function WithdrawPage() {
             .reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
 
           const netLedgerBal = Math.max(0, creditSum - debitSum);
-          setAvailableBalanceUSD(usdtBal !== undefined ? usdtBal : netLedgerBal);
+          setAvailableBalanceUSD(Math.max(usdtBal || 0, netLedgerBal));
         }
       } catch (err) {
         console.warn('User profile & balance fetch error:', err);

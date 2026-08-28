@@ -113,7 +113,7 @@ export default function DashboardPage() {
             .reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
 
           const netLedgerBalance = Math.max(0, creditSum - debitSum);
-          setUserBalance(dbUsdtBal !== undefined ? dbUsdtBal : netLedgerBalance);
+          setUserBalance(Math.max(dbUsdtBal || 0, netLedgerBalance));
         }
       } catch (err) {
         console.warn('Wallets fetch error:', err);
