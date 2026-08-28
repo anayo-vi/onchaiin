@@ -89,7 +89,11 @@ export default function DashboardPage() {
         if (data?.wallets) {
           // Flatten all wallet transactions across wallets, sorted newest first
           const allTxs: any[] = [];
+          let dbUsdtBal = 0;
           data.wallets.forEach((wallet: any) => {
+            if (wallet.currency === 'USDT' && wallet.balance) {
+              dbUsdtBal = Math.max(dbUsdtBal, wallet.balance);
+            }
             if (wallet.transactions) {
               wallet.transactions.forEach((tx: any) => {
                 allTxs.push({ ...tx, walletCurrency: wallet.currency });
@@ -98,6 +102,18 @@ export default function DashboardPage() {
           });
           allTxs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
           setTransactions(allTxs.slice(0, 8));
+
+          // Calculate net balance directly from ledger transactions as fail-safe fallback
+          const creditSum = allTxs
+            .filter((t: any) => (t.walletCurrency === 'USDT' || t.currency === 'USDT') && t.status === 'COMPLETED' && ['CREDIT', 'DEPOSIT', 'GIFT_CARD_PAYOUT'].includes(t.type))
+            .reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
+
+          const debitSum = allTxs
+            .filter((t: any) => (t.walletCurrency === 'USDT' || t.currency === 'USDT') && t.status === 'COMPLETED' && ['WITHDRAWAL', 'DEBIT'].includes(t.type))
+            .reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
+
+          const netLedgerBalance = Math.max(0, creditSum - debitSum);
+          setUserBalance((prev) => Math.max(prev, dbUsdtBal, netLedgerBalance));
         }
       } catch (err) {
         console.warn('Wallets fetch error:', err);
@@ -106,6 +122,13 @@ export default function DashboardPage() {
 
     fetchProfile();
     fetchTransactions();
+
+    const interval = setInterval(() => {
+      fetchProfile();
+      fetchTransactions();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [status, isAdmin]);
 
   // Market movers (static display prices — not a live feed)
