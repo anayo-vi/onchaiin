@@ -73,8 +73,8 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="lg:col-span-7 space-y-6 text-center lg:text-left"
           >
-            <Badge variant="blue" size="md" className="py-1.5 px-4 shadow-lg shadow-[#FCD535]/30 bg-[#FCD535] text-[#0B0E11] font-extrabold border-[#FCD535]">
-              <Sparkles className="w-3.5 h-3.5 mr-1.5 inline-block text-[#0B0E11]" /> Next-Gen Crypto & Gift Card Exchange
+            <Badge variant="blue" size="md" className="py-1.5 px-4 shadow-lg shadow-[#FCD535]/20 bg-[#FCD535]/15 border border-[#FCD535]/40 text-white font-bold">
+              <Sparkles className="w-3.5 h-3.5 mr-1.5 inline-block text-white" /> Next-Gen Crypto & Gift Card Exchange
             </Badge>
 
             <h1 className="text-4xl sm:text-6xl font-black text-white leading-tight tracking-tight">
