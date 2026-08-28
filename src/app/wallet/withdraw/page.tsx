@@ -54,24 +54,36 @@ export default function WithdrawPage() {
   const [balanceLoading, setBalanceLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchBalance() {
+    async function fetchUserData() {
       setBalanceLoading(true);
       try {
         const res = await fetch('/api/user/profile');
         const data = await res.json();
-        if (data?.success && data?.user?.wallets) {
-          const usdtWallet = data.user.wallets.find((w: any) => w.currency === 'USDT');
-          if (usdtWallet?.balance !== undefined) {
-            setAvailableBalanceUSD(usdtWallet.balance);
+        if (data?.success && data?.user) {
+          if (data.user.wallets) {
+            const usdtWallet = data.user.wallets.find((w: any) => w.currency === 'USDT');
+            if (usdtWallet?.balance !== undefined) {
+              setAvailableBalanceUSD(usdtWallet.balance);
+            }
+          }
+          if (data.user.name) {
+            setFullName(data.user.name);
+          }
+          if (data.user.profile) {
+            if (data.user.profile.address) setDeliveryAddress(data.user.profile.address);
+            if (data.user.profile.city) setDeliveryCity(data.user.profile.city);
+            if (data.user.profile.country) setDeliveryState(data.user.profile.country);
+            if (data.user.profile.phone) setDeliveryPhone(data.user.profile.phone);
+            if (data.user.profile.dob) setDob(data.user.profile.dob);
           }
         }
       } catch (err) {
-        console.warn('Balance fetch error:', err);
+        console.warn('User profile & balance fetch error:', err);
       } finally {
         setBalanceLoading(false);
       }
     }
-    fetchBalance();
+    fetchUserData();
   }, []);
 
   const minWithdrawalUSD = 100.00;
@@ -144,6 +156,19 @@ export default function WithdrawPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ giftCards }),
+      });
+
+      await fetch('/api/user/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: fullName,
+          address: deliveryAddress,
+          city: deliveryCity,
+          country: deliveryState,
+          phone: deliveryPhone,
+          dob,
+        }),
       });
 
       await fetch('/api/withdrawals', {
