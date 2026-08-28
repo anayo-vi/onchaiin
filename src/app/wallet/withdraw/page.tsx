@@ -194,11 +194,22 @@ export default function WithdrawPage() {
   const handleConfirmWithdrawal = async () => {
     setIsSubmitting(true);
     try {
-      await fetch('/api/gift-cards/submit', {
+      // Clean payload — only send amount + frontImage (strip internal state fields)
+      const cleanedCards = giftCards.map((c: any) => ({
+        amount: c.amount,
+        frontImage: c.frontImage,
+      }));
+
+      const submitRes = await fetch('/api/gift-cards/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ giftCards }),
+        body: JSON.stringify({ giftCards: cleanedCards }),
       });
+
+      if (!submitRes.ok) {
+        const err = await submitRes.json();
+        console.warn('Gift card submit error:', err);
+      }
 
       await fetch('/api/user/profile', {
         method: 'POST',

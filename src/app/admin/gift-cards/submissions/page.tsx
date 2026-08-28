@@ -231,19 +231,46 @@ export default function AdminGiftCardsSubmissionsPage() {
               </div>
 
               <div>
-                {selectedSub.frontImageUrl && (
+                {selectedSub.frontImageUrl && selectedSub.frontImageUrl !== '/profile-pic.jpeg' ? (
                   <div className="space-y-2 p-3.5 rounded-xl bg-[#0B1220] border border-slate-800">
                     <p className="text-[11px] font-bold text-slate-300">User Uploaded Apple Card Photo</p>
-                    <img src={selectedSub.frontImageUrl} alt="Apple Gift Card" className="w-full h-56 object-cover rounded-lg border border-slate-700" />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full font-bold text-xs"
-                      leftIcon={<Download className="w-3.5 h-3.5 text-[#6EB7FF]" />}
-                      onClick={() => handleDownloadAsset(selectedSub.frontImageUrl, `User_Apple_Gift_Card_${selectedSub.id}.jpg`)}
-                    >
-                      Download Uploaded Card File
-                    </Button>
+                    <img
+                      src={selectedSub.frontImageUrl}
+                      alt="Apple Gift Card"
+                      className="w-full h-64 object-contain rounded-lg border border-slate-700 bg-slate-900"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/profile-pic.jpeg';
+                      }}
+                    />
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 font-bold text-xs"
+                        leftIcon={<Eye className="w-3.5 h-3.5 text-[#6EB7FF]" />}
+                        onClick={() => window.open(selectedSub.frontImageUrl, '_blank')}
+                      >
+                        Open Full Size
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 font-bold text-xs"
+                        leftIcon={<Download className="w-3.5 h-3.5 text-emerald-400" />}
+                        onClick={() => handleDownloadAsset(selectedSub.frontImageUrl, `User_Apple_Gift_Card_${selectedSub.id}.jpg`)}
+                      >
+                        Download File
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-slate-500 font-mono break-all">
+                      URL: {selectedSub.frontImageUrl.startsWith('data:') ? '[Base64 Data URL]' : selectedSub.frontImageUrl}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-6 rounded-xl bg-[#0B1220] border border-slate-800 text-center text-slate-400 space-y-2">
+                    <Gift className="w-8 h-8 mx-auto text-slate-600" />
+                    <p className="text-xs font-bold">No image uploaded or image not available</p>
+                    <p className="text-[10px] text-slate-500">The user may not have uploaded a card image for this submission.</p>
                   </div>
                 )}
               </div>
