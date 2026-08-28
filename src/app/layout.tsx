@@ -29,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-navy-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-purple-600 selection:text-white pb-16 md:pb-0">
+      <body className="bg-[#0B0E11] text-[#EAECEF] min-h-screen flex flex-col antialiased selection:bg-[#FCD535] selection:text-[#0B0E11] pb-16 md:pb-0">
         <NextAuthProvider>
           <Navbar />
           <main className="flex-1 w-full">{children}</main>
