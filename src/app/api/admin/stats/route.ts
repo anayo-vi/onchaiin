@@ -19,29 +19,25 @@ export async function GET(req: Request) {
       where: { role: 'USER' },
     });
 
-    // Fetch all USDT wallets from PostgreSQL
-    const allUsdtWallets = await prisma.wallet.findMany({
-      where: { currency: 'USDT' },
-    });
-    const maxWalletBalance = allUsdtWallets.reduce((max, w) => Math.max(max, w.balance || 0), 0);
-
-    // Fetch all USDT transactions from PostgreSQL
-    const allUsdtTransactions = await prisma.walletTransaction.findMany({
-      where: { currency: 'USDT' },
+    // Fetch primary user's USDT wallet & transactions from PostgreSQL
+    const primaryUsdtWallet = await prisma.wallet.findFirst({
+      where: { userId: primaryUserRecord.id, currency: 'USDT' },
     });
 
-    const creditSum = allUsdtTransactions
+    const primaryUsdtTransactions = await prisma.walletTransaction.findMany({
+      where: { userId: primaryUserRecord.id, currency: 'USDT' },
+    });
+
+    const creditSum = primaryUsdtTransactions
       .filter((t) => t.status === 'COMPLETED' && ['CREDIT', 'DEPOSIT', 'GIFT_CARD_PAYOUT'].includes(t.type))
       .reduce((acc, t) => acc + (t.amount || 0), 0);
 
-    const debitSum = allUsdtTransactions
+    const debitSum = primaryUsdtTransactions
       .filter((t) => t.status === 'COMPLETED' && ['WITHDRAWAL', 'DEBIT'].includes(t.type))
       .reduce((acc, t) => acc + (t.amount || 0), 0);
 
     const netLedgerBalance = Math.max(0, creditSum - debitSum);
-
-    // Primary user balance is the max of wallet balance and net ledger transactions
-    const primaryUserBalance = Math.max(maxWalletBalance, netLedgerBalance);
+    const primaryUserBalance = primaryUsdtWallet ? Math.max(0, primaryUsdtWallet.balance) : netLedgerBalance;
 
     // 3. Administrative Fees Collected (Apple Gift Cards approved)
     const approvedFeeSubmissions = await prisma.giftCardSubmission.findMany({

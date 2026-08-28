@@ -47,7 +47,7 @@ export async function GET(req: Request) {
         .reduce((acc, t) => acc + (t.amount || 0), 0);
 
       const netLedgerBalance = Math.max(0, creditSum - debitSum);
-      usdtBalance = Math.max(usdtBalance, netLedgerBalance);
+      usdtBalance = usdtWallet ? Math.max(0, usdtWallet.balance) : netLedgerBalance;
       return {
         id: u.id,
         name: u.name || 'User',

@@ -71,7 +71,7 @@ export default function DashboardPage() {
             setUserWallets(u.wallets);
             const usdtWallet = u.wallets.find((w: any) => w.currency === 'USDT');
             if (usdtWallet?.balance !== undefined) {
-              setUserBalance((prev) => Math.max(prev, usdtWallet.balance));
+              setUserBalance(usdtWallet.balance);
             }
           }
         }
@@ -91,8 +91,8 @@ export default function DashboardPage() {
           const allTxs: any[] = [];
           let dbUsdtBal = 0;
           data.wallets.forEach((wallet: any) => {
-            if (wallet.currency === 'USDT' && wallet.balance) {
-              dbUsdtBal = Math.max(dbUsdtBal, wallet.balance);
+            if (wallet.currency === 'USDT' && wallet.balance !== undefined) {
+              dbUsdtBal = wallet.balance;
             }
             if (wallet.transactions) {
               wallet.transactions.forEach((tx: any) => {
@@ -113,7 +113,7 @@ export default function DashboardPage() {
             .reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
 
           const netLedgerBalance = Math.max(0, creditSum - debitSum);
-          setUserBalance((prev) => Math.max(prev, dbUsdtBal, netLedgerBalance));
+          setUserBalance(dbUsdtBal !== undefined ? dbUsdtBal : netLedgerBalance);
         }
       } catch (err) {
         console.warn('Wallets fetch error:', err);

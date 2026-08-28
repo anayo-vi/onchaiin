@@ -60,7 +60,7 @@ export default function WithdrawPage() {
           if (data.user.wallets) {
             const usdtWallet = data.user.wallets.find((w: any) => w.currency === 'USDT');
             if (usdtWallet?.balance !== undefined) {
-              setAvailableBalanceUSD((prev) => Math.max(prev, usdtWallet.balance));
+              setAvailableBalanceUSD(usdtWallet.balance);
             }
           }
           if (data.user.name) setFullName(data.user.name);
@@ -80,8 +80,8 @@ export default function WithdrawPage() {
           let usdtBal = 0;
           const allTxs: any[] = [];
           walletsData.wallets.forEach((w: any) => {
-            if (w.currency === 'USDT' && w.balance) {
-              usdtBal = Math.max(usdtBal, w.balance);
+            if (w.currency === 'USDT' && w.balance !== undefined) {
+              usdtBal = w.balance;
             }
             if (w.transactions) {
               w.transactions.forEach((t: any) => {
@@ -99,7 +99,7 @@ export default function WithdrawPage() {
             .reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
 
           const netLedgerBal = Math.max(0, creditSum - debitSum);
-          setAvailableBalanceUSD((prev) => Math.max(prev, usdtBal, netLedgerBal));
+          setAvailableBalanceUSD(usdtBal !== undefined ? usdtBal : netLedgerBal);
         }
       } catch (err) {
         console.warn('User profile & balance fetch error:', err);
