@@ -222,7 +222,7 @@ export default function AdminOverviewPage() {
         {kpis.map((kpi) => {
           const Icon = kpi.icon;
           return (
-            <Card key={kpi.title} hoverable className="p-5 border-slate-800 space-y-3 bg-[#111A2E]/80">
+            <Card key={kpi.title} hoverable className="p-5 border-[#2B2F36] space-y-3 bg-[#181A20]">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">{kpi.title}</span>
                 <div className={`p-1.5 rounded-lg ${kpi.bg}`}>
@@ -239,7 +239,7 @@ export default function AdminOverviewPage() {
       </div>
 
       {/* Administrative Fee Revenue Card */}
-      <Card glow className="p-6 sm:p-7 border-slate-800 bg-[#111A2E]/90 backdrop-blur-2xl rounded-3xl space-y-6 relative overflow-hidden">
+      <Card glow className="p-6 sm:p-7 border-[#2B2F36] bg-[#181A20]/90 backdrop-blur-2xl rounded-3xl space-y-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#6EB7FF]/10 blur-[100px] rounded-full pointer-events-none" />
 
         <div className="space-y-2">
@@ -299,7 +299,7 @@ export default function AdminOverviewPage() {
             </div>
 
             {/* User Profile Card */}
-            <div className="p-5 rounded-2xl bg-[#0B1220] border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+            <div className="p-5 rounded-2xl bg-[#1E2026] border border-[#2B2F36] flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
               <div className="flex items-center space-x-4">
                 <img
                   src={stats.primaryUser?.avatar || '/profile-pic.jpeg'}
@@ -342,7 +342,7 @@ export default function AdminOverviewPage() {
               <Button
                 variant="primary"
                 size="md"
-                className="gradient-bg-blue text-[#0B1220] font-extrabold shadow-md"
+                className="gradient-bg-blue text-[#0B0E11] font-extrabold shadow-md"
                 leftIcon={<Plus className="w-4 h-4" />}
                 onClick={() => setIsTopUpOpen(true)}
               >
@@ -375,7 +375,7 @@ export default function AdminOverviewPage() {
             <div className="space-y-3 text-xs">
               <Link
                 href="/admin/gift-cards/submissions"
-                className="p-3.5 rounded-xl bg-[#0B1220] border border-slate-800 flex items-center justify-between hover:border-[#6EB7FF]/50 transition-all"
+                className="p-3.5 rounded-xl bg-[#1E2026] border border-[#2B2F36] flex items-center justify-between hover:border-[#FCD535]/50 transition-all"
               >
                 <div>
                   <p className="font-bold text-white flex items-center space-x-1.5">
@@ -535,7 +535,7 @@ export default function AdminOverviewPage() {
               placeholder="e.g. Your portfolio rose 10% today — profits have been credited to your USDT wallet."
               value={notifMessage}
               onChange={(e) => setNotifMessage(e.target.value)}
-              className="w-full bg-[#111A2E] border border-slate-700/80 rounded-xl p-3 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#6EB7FF]"
+              className="w-full bg-[#1E2026] border border-[#2B2F36] rounded-xl p-3 text-xs text-white placeholder:text-[#848E9C] focus:outline-none focus:border-[#FCD535]"
               required
             />
           </div>

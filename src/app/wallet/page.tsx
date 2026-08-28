@@ -155,7 +155,7 @@ export default function WalletPage() {
         {/* Transactions Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#0B1220]/80 text-slate-400 uppercase tracking-wider border-b border-slate-800">
+            <thead className="bg-[#1E2026] text-[#848E9C] uppercase tracking-wider border-b border-[#2B2F36]">
               <tr>
                 <th className="p-4">Reference</th>
                 <th className="p-4">Type</th>
@@ -166,18 +166,18 @@ export default function WalletPage() {
                 <th className="p-4">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-[#2B2F36]/60">
               {filteredTransactions.map((tx) => (
-                <tr key={tx.id} className="hover:bg-[#1C2B4A]/30 transition-colors">
-                  <td className="p-4 font-mono font-bold text-[#6EB7FF]">{tx.id}</td>
+                <tr key={tx.id} className="hover:bg-[#2B2F36]/30 transition-colors">
+                  <td className="p-4 font-mono font-bold text-[#FCD535]">{tx.id}</td>
                   <td className="p-4">
-                    <span className="font-semibold text-slate-200">{tx.type.replace('_', ' ')}</span>
+                    <span className="font-semibold text-[#EAECEF]">{tx.type.replace('_', ' ')}</span>
                   </td>
-                  <td className="p-4 font-bold text-slate-100">{tx.currency}</td>
+                  <td className="p-4 font-bold text-[#EAECEF]">{tx.currency}</td>
                   <td className="p-4 font-mono font-bold text-white">
                     {tx.type === 'WITHDRAWAL' ? '-' : '+'} {tx.amount} {tx.currency}
                   </td>
-                  <td className="p-4 font-mono text-slate-400">{tx.fee} {tx.currency}</td>
+                  <td className="p-4 font-mono text-[#848E9C]">{tx.fee} {tx.currency}</td>
                   <td className="p-4">
                     <Badge variant={tx.status === 'COMPLETED' ? 'success' : 'warning'} size="sm">
                       {tx.status}

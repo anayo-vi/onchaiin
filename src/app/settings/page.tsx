@@ -163,7 +163,7 @@ export default function SettingsPage() {
         {/* Left Main Settings Form */}
         <div className="md:col-span-8 space-y-6">
           {/* Profile Picture Upload Card */}
-          <Card glow className="p-6 border-slate-800 bg-[#111A2E]/90 backdrop-blur-2xl space-y-4">
+          <Card glow className="p-6 border-[#2B2F36] bg-[#181A20]/90 backdrop-blur-2xl space-y-4">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">Profile Picture</h3>
             <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
               {/* Circular Avatar Preview with Real-time Camera Overlay */}
@@ -171,7 +171,7 @@ export default function SettingsPage() {
                 <img
                   src={avatar}
                   alt={name}
-                  className="w-24 h-24 rounded-full object-cover ring-4 ring-[#6EB7FF]/40 shadow-2xl transition-transform group-hover:scale-105"
+                  className="w-24 h-24 rounded-full object-cover ring-4 ring-[#FCD535]/40 shadow-2xl transition-transform group-hover:scale-105"
                 />
                 <label
                   htmlFor="avatar-upload-input"
@@ -203,7 +203,7 @@ export default function SettingsPage() {
                 </p>
                 <label
                   htmlFor="avatar-upload-input"
-                  className="inline-flex items-center space-x-2 text-xs font-bold text-[#6EB7FF] bg-[#6EB7FF]/15 border border-[#6EB7FF]/30 px-4 py-2 rounded-xl hover:bg-[#6EB7FF]/25 cursor-pointer transition-all"
+                  className="inline-flex items-center space-x-2 text-xs font-bold text-[#FCD535] bg-[#FCD535]/15 border border-[#FCD535]/30 px-4 py-2 rounded-xl hover:bg-[#FCD535]/25 cursor-pointer transition-all"
                 >
                   {isUploading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -217,7 +217,7 @@ export default function SettingsPage() {
           </Card>
 
           {/* Account Details Form */}
-          <Card className="p-6 border-slate-800 space-y-6">
+          <Card className="p-6 border-[#2B2F36] space-y-6 bg-[#181A20]">
             {savedSuccess && (
               <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center space-x-2 text-emerald-300 text-xs font-bold">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -231,7 +231,7 @@ export default function SettingsPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                leftIcon={<User className="w-4 h-4" />}
+                leftIcon={<User className="w-4 h-4 text-[#FCD535]" />}
                 required
               />
 
@@ -240,7 +240,7 @@ export default function SettingsPage() {
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                leftIcon={<Phone className="w-4 h-4" />}
+                leftIcon={<Phone className="w-4 h-4 text-[#FCD535]" />}
               />
 
               <div className="grid grid-cols-2 gap-4">
@@ -249,7 +249,7 @@ export default function SettingsPage() {
                   type="text"
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  leftIcon={<MapPin className="w-4 h-4" />}
+                  leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
                 />
 
                 <Input
@@ -257,7 +257,7 @@ export default function SettingsPage() {
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  leftIcon={<MapPin className="w-4 h-4" />}
+                  leftIcon={<MapPin className="w-4 h-4 text-[#FCD535]" />}
                 />
               </div>
 
@@ -266,7 +266,7 @@ export default function SettingsPage() {
                 variant="primary" 
                 size="md" 
                 isLoading={isSaving}
-                className="mt-2 gradient-bg-blue text-[#0B1220] font-extrabold shadow-lg shadow-[#5A9BFF]/25 py-3"
+                className="mt-2 gradient-bg-blue text-[#0B0E11] font-extrabold shadow-lg shadow-[#FCD535]/25 py-3"
               >
                 Save Profile Changes
               </Button>
@@ -276,7 +276,7 @@ export default function SettingsPage() {
 
         {/* Right Security Sidebar */}
         <div className="md:col-span-4 space-y-6">
-          <Card className="p-5 border-slate-800 space-y-4 bg-[#111A2E]/80">
+          <Card className="p-5 border-[#2B2F36] space-y-4 bg-[#181A20]">
             <h3 className="text-sm font-bold text-white flex items-center space-x-2">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>Account Security</span>

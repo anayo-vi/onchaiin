@@ -129,7 +129,7 @@ export default function LandingPage() {
 
               {/* Brand Select Buttons */}
               <div className="space-y-2">
-                <label className="text-xs text-slate-400 font-medium">Select Brand</label>
+                <label className="text-xs text-[#848E9C] font-medium">Select Brand</label>
                 <div className="flex flex-wrap gap-2">
                   {brands.slice(0, 4).map((b) => (
                     <button
@@ -137,8 +137,8 @@ export default function LandingPage() {
                       onClick={() => setSelectedBrand(b)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         selectedBrand === b
-                          ? 'gradient-bg-blue text-[#0B1220] shadow-md'
-                          : 'bg-[#1C2B4A] text-slate-300 hover:bg-slate-700'
+                          ? 'gradient-bg-blue text-[#0B0E11] shadow-md'
+                          : 'bg-[#2B2F36] text-[#EAECEF] hover:bg-[#363A45]'
                       }`}
                     >
                       {b}
@@ -148,13 +148,13 @@ export default function LandingPage() {
               </div>
 
               {/* Card Type Switch */}
-              <div className="flex space-x-2 bg-[#0B1220]/60 p-1 rounded-xl border border-slate-800">
+              <div className="flex space-x-2 bg-[#1E2026] p-1 rounded-xl border border-[#2B2F36]">
                 <button
                   onClick={() => setSelectedCardType('PHYSICAL')}
                   className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                     selectedCardType === 'PHYSICAL'
-                      ? 'bg-[#6EB7FF] text-[#0B1220] font-bold'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-[#FCD535] text-[#0B0E11] font-bold'
+                      : 'text-[#848E9C] hover:text-[#EAECEF]'
                   }`}
                 >
                   Physical Card ({selectedBrand === 'Apple' ? '85%' : '82%'})
@@ -163,8 +163,8 @@ export default function LandingPage() {
                   onClick={() => setSelectedCardType('ECODE')}
                   className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                     selectedCardType === 'ECODE'
-                      ? 'bg-[#6EB7FF] text-[#0B1220] font-bold'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-[#FCD535] text-[#0B0E11] font-bold'
+                      : 'text-[#848E9C] hover:text-[#EAECEF]'
                   }`}
                 >
                   E-Code ({selectedBrand === 'Apple' ? '80%' : '78%'})
@@ -174,8 +174,8 @@ export default function LandingPage() {
               {/* Amount Input Slider */}
               <div className="space-y-2">
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-400 font-medium">Card Value (USD)</span>
-                  <span className="text-[#6EB7FF] font-bold">${amount} USD</span>
+                  <span className="text-[#848E9C] font-medium">Card Value (USD)</span>
+                  <span className="text-[#FCD535] font-bold">${amount} USD</span>
                 </div>
                 <input
                   type="range"
@@ -184,15 +184,15 @@ export default function LandingPage() {
                   step="25"
                   value={amount}
                   onChange={(e) => setAmount(Number(e.target.value))}
-                  className="w-full h-2 bg-[#1C2B4A] rounded-lg appearance-none cursor-pointer accent-[#6EB7FF]"
+                  className="w-full h-2 bg-[#2B2F36] rounded-lg appearance-none cursor-pointer accent-[#FCD535]"
                 />
               </div>
 
               {/* Calculated Payout Box */}
-              <div className="p-4 rounded-xl bg-[#16223B]/80 border border-[#6EB7FF]/30 flex items-center justify-between">
+              <div className="p-4 rounded-xl bg-[#181A20] border border-[#FCD535]/30 flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] text-[#6EB7FF] font-semibold uppercase tracking-wider">Estimated Payout</p>
-                  <p className="text-2xl font-black text-white">{estimatedPayout} <span className="text-sm font-semibold text-emerald-400">USDT</span></p>
+                  <p className="text-[11px] text-[#FCD535] font-semibold uppercase tracking-wider">Estimated Payout</p>
+                  <p className="text-2xl font-black text-white">{estimatedPayout} <span className="text-sm font-semibold text-[#0ECB81]">USDT</span></p>
                 </div>
                 <Link href="/gift-cards">
                   <Button size="sm" variant="primary">

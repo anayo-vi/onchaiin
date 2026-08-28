@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 48 96% 60%;
-    --foreground: 220 20% 5%;
+    --background: 220 20% 5%;
+    --foreground: 210 20% 98%;
   }
 
   body {
-    background-color: #FCD535;
-    color: #0B0E11;
+    background-color: #0B0E11;
+    color: #EAECEF;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
     min-height: 100vh;
   }
 }
 
-/* Glassmorphism primitives - Dark Obsidian Cards sitting on Yellow Canvas */
+/* Glassmorphism primitives - Dark Obsidian Cards sitting on Dark Canvas (#0B0E11) */
 .glass-card {
   background: #181A20;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid #2B2F36;
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
 }
 
 .glass-card-hover {
@@ -33,7 +33,7 @@
   background: #21242C;
   border-color: #FCD535;
   transform: translateY(-2px);
-  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 16px 40px -10px rgba(252, 213, 53, 0.25);
 }
 
 .glass-input {
@@ -73,12 +73,12 @@
 .gradient-bg-purple-hover:hover,
 .gradient-bg-blue-hover:hover {
   background: linear-gradient(135deg, #F0B90B 0%, #E0A800 100%);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 25px -5px rgba(252, 213, 53, 0.45);
 }
 
 .purple-glow,
 .blue-glow {
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 25px rgba(252, 213, 53, 0.25);
 }
 
 /* Custom Scrollbars */
@@ -87,12 +87,12 @@
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #FCD535;
+  background: #0B0E11;
 }
 ::-webkit-scrollbar-thumb {
-  background: #181A20;
+  background: #2B2F36;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2B2F36;
+  background: #363A45;
 }

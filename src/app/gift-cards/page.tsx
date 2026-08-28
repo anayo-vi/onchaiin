@@ -143,8 +143,8 @@ export default function GiftCardsPage() {
                       onClick={() => setSelectedBrand(b.name)}
                       className={`p-3 rounded-xl border flex flex-col items-center justify-center space-y-1 transition-all ${
                         selectedBrand === b.name
-                          ? 'gradient-bg-blue text-[#0B1220] font-bold shadow-lg border-[#6EB7FF]'
-                          : 'bg-[#111A2E]/80 border-slate-800 text-slate-300 hover:border-slate-700'
+                          ? 'gradient-bg-blue text-[#0B0E11] font-bold shadow-lg border-[#FCD535]'
+                          : 'bg-[#181A20] border-[#2B2F36] text-[#EAECEF] hover:border-[#363A45]'
                       }`}
                     >
                       <span className="text-xl">{b.icon}</span>
@@ -298,30 +298,35 @@ export default function GiftCardsPage() {
             <div className="flex items-center space-x-2">
               <Sparkles className="w-5 h-5 text-[#6EB7FF]" />
               <h3 className="text-sm font-bold text-white">Live Rate Summary</h3>
-            </div>
+          <Card glow className="p-6 border-[#FCD535]/30 space-y-5 bg-[#181A20]">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center space-x-2">
+              <Sparkles className="w-5 h-5 text-[#FCD535]" />
+              <span>Order Summary</span>
+            </h3>
 
             <div className="space-y-3 text-xs">
-              <div className="flex justify-between text-slate-400">
-                <span>Card Brand:</span>
-                <span className="font-bold text-white">{selectedBrand} ({selectedCountry})</span>
+              <div className="flex justify-between py-2 border-b border-[#2B2F36]">
+                <span className="text-[#848E9C]">Card Brand</span>
+                <span className="font-bold text-[#EAECEF]">{selectedBrand}</span>
               </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Exchange Rate:</span>
-                <span className="font-bold text-emerald-400">{ratePercentage}%</span>
+              <div className="flex justify-between py-2 border-b border-[#2B2F36]">
+                <span className="text-[#848E9C]">Exchange Rate</span>
+                <span className="font-bold text-[#0ECB81]">{ratePercentage}%</span>
               </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Face Value:</span>
-                <span className="font-bold text-white">${numDenomination} USD</span>
+              <div className="flex justify-between py-2 border-b border-[#2B2F36]">
+                <span className="text-[#848E9C]">Input Value</span>
+                <span className="font-mono font-bold text-[#EAECEF]">${numDenomination} USD</span>
               </div>
-              <div className="p-3 rounded-xl bg-[#16223B]/80 border border-[#6EB7FF]/30 flex justify-between items-center text-sm font-bold text-white">
-                <span>Your Payout:</span>
-                <span className="text-lg font-mono text-[#6EB7FF]">{calculatedPayout} USDT</span>
+
+              <div className="p-3 rounded-xl bg-[#1E2026] border border-[#FCD535]/30 flex justify-between items-center text-sm font-bold text-white">
+                <span className="text-[#848E9C] text-xs">Estimated Payout</span>
+                <span className="text-lg font-mono text-[#FCD535]">{calculatedPayout} USDT</span>
               </div>
             </div>
           </Card>
 
           {/* Submissions Tracker */}
-          <Card className="p-6 border-slate-800 space-y-4">
+          <Card className="p-6 border-[#2B2F36] bg-[#181A20] space-y-4">
             <h3 className="text-sm font-bold text-white">Your Trade Submissions</h3>
 
             <div className="space-y-3 text-xs">
