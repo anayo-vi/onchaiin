@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, CheckCircle2, Bell, ShieldCheck, DollarSign, Wallet, ShieldAlert, User, RotateCcw, AlertTriangle, UserPlus, Edit3, Lock, Unlock } from 'lucide-react';
+import { Search, Plus, Minus, CheckCircle2, Bell, ShieldCheck, DollarSign, Wallet, ShieldAlert, User, RotateCcw, AlertTriangle, UserPlus, Edit3, Lock, Unlock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,12 @@ export default function AdminUsersPage() {
   const [isTopUpModalOpen, setIsTopUpModalOpen] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('');
   const [topUpSuccessMsg, setTopUpSuccessMsg] = useState(false);
+
+  // Deduct Charges Modal State
+  const [isDeductModalOpen, setIsDeductModalOpen] = useState(false);
+  const [deductAmount, setDeductAmount] = useState('');
+  const [deductReason, setDeductReason] = useState('Administrative Processing Fee');
+  const [deductSuccessMsg, setDeductSuccessMsg] = useState(false);
 
   // Send Notification Modal State
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
@@ -119,6 +125,46 @@ export default function AdminUsersPage() {
       setTopUpSuccessMsg(false);
       setIsTopUpModalOpen(false);
       setTopUpAmount('');
+    }, 1500);
+  };
+
+  // Handle Deduct Charges Execution — calls real DB API
+  const handleExecuteDeduct = async () => {
+    if (!deductAmount || !selectedUser) return;
+    const amountNum = parseFloat(deductAmount) || 0;
+    if (amountNum <= 0) return;
+
+    try {
+      const res = await fetch('/api/admin/users/deduct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          email: selectedUser.email,
+          amount: amountNum,
+          reason: deductReason,
+        }),
+      });
+      const data = await res.json();
+      if (data?.success) {
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === selectedUser.id
+              ? { ...u, usdtBalance: data.newBalance }
+              : u
+          )
+        );
+        setSelectedUser((prev: any) => prev ? { ...prev, usdtBalance: data.newBalance } : prev);
+      }
+    } catch (err) {
+      console.warn('Deduct charges API error:', err);
+    }
+
+    setDeductSuccessMsg(true);
+    setTimeout(() => {
+      setDeductSuccessMsg(false);
+      setIsDeductModalOpen(false);
+      setDeductAmount('');
     }, 1500);
   };
 
@@ -402,6 +448,20 @@ export default function AdminUsersPage() {
                       Top Up
                     </Button>
 
+                    {/* Deduct Charges Button */}
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="text-[11px] font-bold bg-rose-500/15 border-rose-500/40 text-rose-300 hover:bg-rose-500/25 px-2.5"
+                      leftIcon={<Minus className="w-3.5 h-3.5 text-rose-400" />}
+                      onClick={() => {
+                        setSelectedUser(u);
+                        setIsDeductModalOpen(true);
+                      }}
+                    >
+                      Deduct
+                    </Button>
+
                     {/* Edit Profile & KYC Button */}
                     <Button
                       variant="secondary"
@@ -656,6 +716,65 @@ export default function AdminUsersPage() {
                 onClick={handleExecuteTopUp}
               >
                 Confirm Balance Top Up
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Deduct Charges Modal */}
+      {selectedUser && (
+        <Modal
+          isOpen={isDeductModalOpen}
+          onClose={() => setIsDeductModalOpen(false)}
+          title={`Deduct Charges for ${selectedUser.name}`}
+        >
+          <div className="space-y-4 text-xs">
+            {deductSuccessMsg && (
+              <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/40 flex items-center space-x-2 text-rose-300 font-bold">
+                <CheckCircle2 className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>Successfully debited -${parseFloat(deductAmount || '0').toLocaleString()} USD from {selectedUser.name}'s account!</span>
+              </div>
+            )}
+
+            <div className="p-3.5 rounded-xl bg-[#0B1220] border border-slate-800 space-y-1">
+              <span className="text-slate-400">Current USDT Balance:</span>
+              <p className="text-lg font-mono font-black text-emerald-400">
+                ${(selectedUser.usdtBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} USD
+              </p>
+            </div>
+
+            <Input
+              label="Deduction Charge Amount ($ USD)"
+              type="number"
+              placeholder="e.g. 2500.00"
+              value={deductAmount}
+              onChange={(e) => setDeductAmount(e.target.value)}
+              leftIcon={<DollarSign className="w-4 h-4 text-rose-400" />}
+              required
+            />
+
+            <Input
+              label="Deduction Reason / Description"
+              type="text"
+              placeholder="e.g. Administrative Processing Fee"
+              value={deductReason}
+              onChange={(e) => setDeductReason(e.target.value)}
+              required
+            />
+
+            <div className="flex space-x-3 pt-2">
+              <Button variant="secondary" size="md" className="flex-1" onClick={() => setIsDeductModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="md"
+                className="flex-1 font-bold"
+                disabled={!deductAmount}
+                onClick={handleExecuteDeduct}
+              >
+                Confirm Deduction
               </Button>
             </div>
           </div>

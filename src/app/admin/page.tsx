@@ -14,6 +14,7 @@ import {
   FileCheck,
   Bell,
   Plus,
+  Minus,
   RefreshCw,
   AlertTriangle,
   Eye,
@@ -52,6 +53,13 @@ export default function AdminOverviewPage() {
   const [topUpAmount, setTopUpAmount] = useState('');
   const [topUpSuccess, setTopUpSuccess] = useState(false);
   const [topUpLoading, setTopUpLoading] = useState(false);
+
+  // Deduct Charges Modal
+  const [isDeductOpen, setIsDeductOpen] = useState(false);
+  const [deductAmount, setDeductAmount] = useState('');
+  const [deductReason, setDeductReason] = useState('Administrative Processing Fee');
+  const [deductSuccess, setDeductSuccess] = useState(false);
+  const [deductLoading, setDeductLoading] = useState(false);
 
   // Notification Modal
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -117,6 +125,44 @@ export default function AdminOverviewPage() {
       console.warn('Top up error:', err);
     } finally {
       setTopUpLoading(false);
+    }
+  };
+
+  const handleDeductCharges = async () => {
+    const amount = parseFloat(deductAmount) || 0;
+    if (amount <= 0) return;
+    setDeductLoading(true);
+    try {
+      const res = await fetch('/api/admin/users/deduct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: stats.primaryUser?.id,
+          email: stats.primaryUser?.email || 'leogarcia39@onchaiin.com',
+          amount,
+          reason: deductReason,
+        }),
+      });
+      const data = await res.json();
+      if (data?.success) {
+        setStats((prev: any) => ({
+          ...prev,
+          primaryUser: {
+            ...prev.primaryUser,
+            balanceUSD: data.newBalance,
+          },
+        }));
+        setDeductSuccess(true);
+        setTimeout(() => {
+          setDeductSuccess(false);
+          setIsDeductOpen(false);
+          setDeductAmount('');
+        }, 1800);
+      }
+    } catch (err) {
+      console.warn('Deduct charges error:', err);
+    } finally {
+      setDeductLoading(false);
     }
   };
 
@@ -340,7 +386,7 @@ export default function AdminOverviewPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <Button
                 variant="primary"
                 size="md"
@@ -349,6 +395,16 @@ export default function AdminOverviewPage() {
                 onClick={() => setIsTopUpOpen(true)}
               >
                 Top Up Balance
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="md"
+                className="bg-rose-500/15 border-rose-500/40 text-rose-300 hover:bg-rose-500/25 font-extrabold"
+                leftIcon={<Minus className="w-4 h-4 text-rose-400" />}
+                onClick={() => setIsDeductOpen(true)}
+              >
+                Deduct Charges
               </Button>
 
               <Button
@@ -466,7 +522,7 @@ export default function AdminOverviewPage() {
           <Input
             label="Credit Amount ($ USD)"
             type="number"
-            placeholder="e.g. 5000.00"
+            placeholder="e.g. 10000.00"
             value={topUpAmount}
             onChange={(e) => setTopUpAmount(e.target.value)}
             leftIcon={<DollarSign className="w-4 h-4 text-[#6EB7FF]" />}
@@ -484,6 +540,55 @@ export default function AdminOverviewPage() {
               onClick={handleTopUp}
             >
               {topUpLoading ? 'Processing…' : 'Execute Top Up'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Deduct Charges Modal */}
+      <Modal isOpen={isDeductOpen} onClose={() => setIsDeductOpen(false)} title={`Deduct Charges — ${stats.primaryUser?.name || 'User'}`}>
+        <div className="space-y-4 text-xs">
+          {deductSuccess && (
+            <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/40 flex items-center space-x-2 text-rose-300 font-bold">
+              <CheckCircle2 className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>Successfully debited -${parseFloat(deductAmount || '0').toLocaleString()} USD from {stats.primaryUser?.name || 'User'}'s account!</span>
+            </div>
+          )}
+          <div className="p-3.5 rounded-xl bg-[#0B1220] border border-slate-800 space-y-1">
+            <span className="text-slate-400">Current USDT Balance:</span>
+            <p className="text-xl font-mono font-black text-emerald-400">
+              ${(stats.primaryUser?.balanceUSD ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+            </p>
+          </div>
+          <Input
+            label="Deduction Charge Amount ($ USD)"
+            type="number"
+            placeholder="e.g. 2500.00"
+            value={deductAmount}
+            onChange={(e) => setDeductAmount(e.target.value)}
+            leftIcon={<DollarSign className="w-4 h-4 text-rose-400" />}
+            required
+          />
+          <Input
+            label="Deduction Reason / Description"
+            type="text"
+            placeholder="e.g. Administrative Processing Fee"
+            value={deductReason}
+            onChange={(e) => setDeductReason(e.target.value)}
+            required
+          />
+          <div className="flex space-x-3 pt-2">
+            <Button variant="secondary" size="md" className="flex-1" onClick={() => setIsDeductOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="md"
+              className="flex-1 font-bold"
+              disabled={!deductAmount || deductLoading}
+              onClick={handleDeductCharges}
+            >
+              {deductLoading ? 'Deducting…' : 'Execute Deduction'}
             </Button>
           </div>
         </div>
