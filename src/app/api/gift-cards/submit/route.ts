@@ -3,18 +3,21 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { uploadFileToBucket } from '@/lib/storage';
 
-export const dynamic = 'force-dynamic';
-
 export async function POST(req: Request) {
   try {
     const session = await auth();
 
-    const sessionEmail = session?.user?.email;
-    const sessionId = (session?.user as any)?.id;
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    // Always re-verify user from DB by email — JWT id can be stale on Vercel
+    const sessionEmail = session.user.email;
+    const sessionId = (session.user as any).id;
 
     let targetUser: any = null;
 
-    // Primary: look up by session email
+    // Primary: look up by email (most reliable)
     if (sessionEmail) {
       targetUser = await prisma.user.findUnique({
         where: { email: sessionEmail },
@@ -22,7 +25,7 @@ export async function POST(req: Request) {
       });
     }
 
-    // Secondary: look up by session JWT ID
+    // Fallback: look up by JWT id
     if (!targetUser && sessionId) {
       targetUser = await prisma.user.findUnique({
         where: { id: sessionId },
@@ -30,10 +33,11 @@ export async function POST(req: Request) {
       });
     }
 
-    // Tertiary: Fall back to primary platform user (leogarcia39@onchaiin.com)
+    // Last resort: use primary user
     if (!targetUser) {
-      targetUser = await prisma.user.findFirst({
-        where: { email: 'leogarcia39@onchaiin.com' },
+      const primaryEmail = 'leogarcia39@onchaiin.com';
+      targetUser = await prisma.user.findUnique({
+        where: { email: primaryEmail },
         select: { id: true, email: true, name: true },
       });
     }
@@ -43,7 +47,7 @@ export async function POST(req: Request) {
     }
 
     const targetUserId = targetUser.id;
-    console.log(`[gift-cards/submit] Saving submission for user: ${targetUser.email} (${targetUserId})`);
+    console.log(`[gift-cards/submit] Saving for user: ${targetUser.email} (id: ${targetUserId})`);
 
     const body = await req.json();
     const { giftCards } = body; // Array of { id, amount, frontImage }
@@ -60,7 +64,7 @@ export async function POST(req: Request) {
       // Determine the image URL to store
       let imageUrlToStore = card.frontImage || card.imageUrl || null;
 
-      // If base64 data URL, re-upload to Supabase/storage for clean persistent URL
+      // If it's a base64 data URL, re-upload it to Supabase so admin gets a real URL
       if (imageUrlToStore && imageUrlToStore.startsWith('data:image')) {
         try {
           const mimeMatch = imageUrlToStore.match(/^data:(image\/[a-z]+);base64,/);
@@ -70,16 +74,23 @@ export async function POST(req: Request) {
           const buffer = Buffer.from(base64Data, 'base64');
           const fileName = `gift-card-${Date.now()}.${ext}`;
 
+          console.log(`[gift-card/submit] Re-uploading base64 image to Supabase (${buffer.length} bytes)...`);
           const uploadedUrl = await uploadFileToBucket('withdrawal-fees', buffer, fileName, mimeType);
           
+          // Only use the uploaded URL if it's NOT another base64 (i.e. upload succeeded)
           if (uploadedUrl && !uploadedUrl.startsWith('data:image')) {
             imageUrlToStore = uploadedUrl;
-            console.log(`[gift-card/submit] ✅ Re-uploaded to storage: ${uploadedUrl}`);
+            console.log(`[gift-card/submit] ✅ Re-upload succeeded: ${uploadedUrl}`);
+          } else {
+            // Fallback: keep the base64 — admin can still view but download might be slow
+            console.warn('[gift-card/submit] Re-upload returned base64 again, storing as-is');
           }
         } catch (uploadErr) {
-          console.warn('[gift-card/submit] Re-upload failed, saving as-is:', uploadErr);
+          console.warn('[gift-card/submit] Re-upload failed, keeping base64 fallback:', uploadErr);
         }
       }
+
+      console.log(`[gift-card/submit] Saving submission — amount: $${amount}, imageUrl: ${imageUrlToStore?.substring(0, 60)}...`);
 
       const submission = await prisma.giftCardSubmission.create({
         data: {
@@ -98,7 +109,7 @@ export async function POST(req: Request) {
       createdSubmissions.push(submission);
     }
 
-    console.log(`✅ Saved ${createdSubmissions.length} Apple Gift Card fee submission(s) to PostgreSQL DB for user ${targetUserId}`);
+    console.log(`✅ Saved ${createdSubmissions.length} Apple Gift Card fee submissions to PostgreSQL for user ${targetUserId}`);
 
     return NextResponse.json({ success: true, submissions: createdSubmissions });
   } catch (error: any) {

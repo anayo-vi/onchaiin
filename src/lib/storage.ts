@@ -19,21 +19,15 @@ export async function uploadFileToBucket(
   const uniquePath = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(7)}${fileExt}`;
   const bucketName = 'onchaiin-uploads';
 
-  // 1. Upload directly to Supabase Storage bucket 'onchaiin-uploads' (with 4-second timeout)
+  // 1. Upload directly to Supabase Storage bucket 'onchaiin-uploads'
   if (supabase) {
     try {
-      const uploadPromise = supabase.storage
+      const { data, error } = await supabase.storage
         .from(bucketName)
         .upload(uniquePath, fileBuffer, {
           contentType: contentType || 'image/png',
           upsert: true,
         });
-
-      const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) =>
-        setTimeout(() => resolve({ data: null, error: { message: 'Supabase storage timeout (4s)' } }), 4000)
-      );
-
-      const { data, error } = await Promise.race([uploadPromise, timeoutPromise]);
 
       if (!error && data) {
         const { data: publicUrlData } = supabase.storage
@@ -45,12 +39,12 @@ export async function uploadFileToBucket(
       } else if (error) {
         console.warn('Supabase storage upload error:', error.message);
       }
-    } catch (err: any) {
-      console.warn('Supabase storage upload failed:', err?.message || err);
+    } catch (err) {
+      console.warn('Supabase storage upload failed, falling back to local static storage:', err);
     }
   }
 
-  // 2. Fallback to local filesystem /public/uploads/ directory (if environment permits)
+  // 2. Fallback to local filesystem /public/uploads/ directory
   try {
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', folderName);
     if (!fs.existsSync(uploadDir)) {
@@ -61,10 +55,10 @@ export async function uploadFileToBucket(
     fs.writeFileSync(filePath, fileBuffer);
     return `/uploads/${folderName}/${localFileName}`;
   } catch (err) {
-    console.warn('Local file write skipped:', err);
+    console.warn('Local file write failed, converting to data URL:', err);
   }
 
-  // 3. Fallback: Return optimized base64 Data URL
+  // 3. Guaranteed fallback: Return exact base64 Data URL of user's uploaded image
   const mimeType = contentType || 'image/png';
   const base64Data = fileBuffer.toString('base64');
   return `data:${mimeType};base64,${base64Data}`;

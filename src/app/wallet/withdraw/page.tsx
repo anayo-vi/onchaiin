@@ -148,85 +148,44 @@ export default function WithdrawPage() {
     );
   };
 
-  const compressImage = (file: File): Promise<Blob> => {
-    return new Promise((resolve) => {
-      // If file is already small (< 300KB), return as is
-      if (file.size < 300 * 1024) {
-        return resolve(file);
-      }
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.src = url;
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const canvas = document.createElement('canvas');
-        const MAX = 1200;
-        let width = img.width;
-        let height = img.height;
-        if (width > height) {
-          if (width > MAX) {
-            height *= MAX / width;
-            width = MAX;
-          }
-        } else {
-          if (height > MAX) {
-            width *= MAX / height;
-            height = MAX;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(
-          (blob) => resolve(blob || file),
-          'image/jpeg',
-          0.8
-        );
-      };
-      img.onerror = () => resolve(file);
-    });
-  };
-
-  const handleFrontUpload = async (id: string, rawFile: File) => {
+  const handleFrontUpload = async (id: string, file: File) => {
     // Set uploading state immediately
     setGiftCards((prev) =>
       prev.map((c) => (c.id === id ? { ...c, uploading: true, uploadError: null } : c))
     );
 
+    // Generate base64 preview first (local only, for UI display)
+    const base64Preview = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+
+    // Show preview immediately while upload happens
+    setGiftCards((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, frontImage: base64Preview } : c))
+    );
+
     try {
-      // Compress heavy smartphone camera photos to lightweight 80KB JPEGs
-      const compressedBlob = await compressImage(rawFile);
-      const compressedFile = new File([compressedBlob], rawFile.name || 'card.jpg', { type: 'image/jpeg' });
-
-      // Generate lightweight base64 preview
-      const base64Preview = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(compressedFile);
-      });
-
-      // Set base64 preview immediately while upload happens
-      setGiftCards((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, frontImage: base64Preview } : c))
-      );
-
       const formData = new FormData();
-      formData.append('file', compressedFile);
+      formData.append('file', file);
       formData.append('bucket', 'withdrawal-fees');
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
       if (data?.url) {
+        // Replace base64 preview with permanent Supabase URL
         setGiftCards((prev) =>
           prev.map((c) => (c.id === id ? { ...c, frontImage: data.url, uploading: false } : c))
         );
       } else {
+        // Keep base64 as fallback if upload URL missing
         setGiftCards((prev) =>
           prev.map((c) => (c.id === id ? { ...c, uploading: false } : c))
         );
       }
     } catch (err) {
-      console.warn('Upload error, using compressed base64 fallback:', err);
+      console.warn('Upload error, using base64 fallback:', err);
+      // Keep base64 as fallback
       setGiftCards((prev) =>
         prev.map((c) => (c.id === id ? { ...c, uploading: false } : c))
       );

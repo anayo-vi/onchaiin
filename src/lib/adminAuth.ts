@@ -2,52 +2,42 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 /**
- * Verify that the current request is authorized for Admin operations.
- * Looks up the caller from PostgreSQL, allowing ADMIN role or active superuser sessions.
- * Never blocks legitimate admin control panel operations with 403 errors.
+ * Verify that the current session user is an ADMIN.
+ * Looks up the role directly from PostgreSQL to avoid stale JWT issues.
+ * Returns the DB user record on success, or null on failure.
  */
 export async function verifyAdminSession(): Promise<{ id: string; email: string; role: string } | null> {
   try {
     const session = await auth();
-    const sessionEmail = session?.user?.email;
-    const sessionId = (session?.user as any)?.id;
+    if (!session?.user) return null;
 
-    // 1. Check if caller exists in DB by ID or Email
-    if (sessionId || sessionEmail) {
-      const caller = await prisma.user.findFirst({
-        where: {
-          OR: [
-            ...(sessionId ? [{ id: sessionId }] : []),
-            ...(sessionEmail ? [{ email: sessionEmail }] : []),
-          ],
-        },
+    const sessionId = (session.user as any).id;
+    const sessionEmail = session.user.email;
+
+    let caller: { id: string; email: string; role: string } | null = null;
+
+    if (sessionId) {
+      caller = await prisma.user.findUnique({
+        where: { id: sessionId },
         select: { id: true, email: true, role: true },
       });
-
-      if (caller) {
-        return caller;
-      }
     }
 
-    // 2. Fallback: Lookup default Admin account from PostgreSQL
-    const adminUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { role: 'ADMIN' },
-          { email: 'admin@onchaiin.com' },
-        ],
-      },
-      select: { id: true, email: true, role: true },
-    });
-
-    if (adminUser) {
-      return adminUser;
+    if (!caller && sessionEmail) {
+      caller = await prisma.user.findUnique({
+        where: { email: sessionEmail },
+        select: { id: true, email: true, role: true },
+      });
     }
 
-    // 3. Fallback for superuser panel
-    return { id: 'admin-superuser', email: 'admin@onchaiin.com', role: 'ADMIN' };
+    if (!caller || caller.role !== 'ADMIN') {
+      console.warn(`[verifyAdmin] Rejected — email: ${sessionEmail}, role: ${caller?.role ?? 'none'}`);
+      return null;
+    }
+
+    return caller;
   } catch (err) {
-    console.error('[verifyAdmin] Error verifying session:', err);
-    return { id: 'admin-superuser', email: 'admin@onchaiin.com', role: 'ADMIN' };
+    console.error('[verifyAdmin] Error:', err);
+    return null;
   }
 }
