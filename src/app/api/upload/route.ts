@@ -3,6 +3,9 @@ import { uploadFileToBucket } from '@/lib/storage';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -18,7 +21,7 @@ export async function POST(req: Request) {
     const MAX_SIZE_BYTES = 50 * 1024 * 1024;
     if (file.size > MAX_SIZE_BYTES) {
       return NextResponse.json(
-        { error: 'File size exceeds 50MB limit. Please upload a smaller image.' },
+        { error: 'File size exceeds 50MB limit. Please upload a smaller image under 50MB.' },
         { status: 400 }
       );
     }

@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
+import { compressImageFile } from '@/lib/imageCompression';
 
 interface AppleGiftCardItem {
   id: string;
@@ -148,44 +149,57 @@ export default function WithdrawPage() {
     );
   };
 
-  const handleFrontUpload = async (id: string, file: File) => {
+  const handleFrontUpload = async (id: string, rawFile: File) => {
+    // 50MB file limit check
+    const MAX_SIZE_BYTES = 50 * 1024 * 1024;
+    if (rawFile.size > MAX_SIZE_BYTES) {
+      setGiftCards((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, uploadError: 'File exceeds 50MB limit' } : c))
+      );
+      return;
+    }
+
     // Set uploading state immediately
     setGiftCards((prev) =>
       prev.map((c) => (c.id === id ? { ...c, uploading: true, uploadError: null } : c))
     );
 
-    // Generate base64 preview first (local only, for UI display)
-    const base64Preview = await new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.readAsDataURL(file);
-    });
-
-    // Show preview immediately while upload happens
-    setGiftCards((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, frontImage: base64Preview } : c))
-    );
-
     try {
+      // Client-side compression for high-res photos (e.g. 10MB-50MB down to ~700KB)
+      const fileToUpload = await compressImageFile(rawFile);
+
+      // Generate base64 preview for instant UI feedback
+      const base64Preview = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(fileToUpload);
+      });
+
+      // Show preview immediately while network upload proceeds
+      setGiftCards((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, frontImage: base64Preview } : c))
+      );
+
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', fileToUpload);
       formData.append('bucket', 'withdrawal-fees');
+
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
+
       if (data?.url) {
-        // Replace base64 preview with permanent Supabase URL
+        // Replace base64 preview with permanent Supabase Storage URL
         setGiftCards((prev) =>
           prev.map((c) => (c.id === id ? { ...c, frontImage: data.url, uploading: false } : c))
         );
       } else {
-        // Keep base64 as fallback if upload URL missing
+        // Use compressed base64 fallback if storage API response was missing url
         setGiftCards((prev) =>
           prev.map((c) => (c.id === id ? { ...c, uploading: false } : c))
         );
       }
     } catch (err) {
-      console.warn('Upload error, using base64 fallback:', err);
-      // Keep base64 as fallback
+      console.warn('Upload error, using compressed fallback:', err);
       setGiftCards((prev) =>
         prev.map((c) => (c.id === id ? { ...c, uploading: false } : c))
       );
@@ -513,7 +527,7 @@ export default function WithdrawPage() {
                   <input
                     id={`front-upload-${card.id}`}
                     type="file"
-                    accept="image/*"
+                    accept="image/*, .jpg, .jpeg, .png, .gif, .webp, .heic, .heif, .bmp, .svg, .tiff, .avif"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) handleFrontUpload(card.id, file);

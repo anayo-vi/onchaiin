@@ -9,15 +9,41 @@ const supabase = (supabaseUrl && supabaseKey)
   ? createClient(supabaseUrl, supabaseKey) 
   : null;
 
+// Helper to determine exact MIME type for all image formats (including HEIC, HEIF, WEBP, AVIF, TIFF, etc.)
+function detectMimeType(fileName: string, providedType: string): string {
+  if (providedType && providedType !== 'application/octet-stream' && providedType !== '') {
+    return providedType;
+  }
+
+  const ext = path.extname(fileName).toLowerCase();
+  const mimeMap: Record<string, string> = {
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png',
+    '.webp': 'image/webp',
+    '.heic': 'image/heic',
+    '.heif': 'image/heif',
+    '.gif': 'image/gif',
+    '.bmp': 'image/bmp',
+    '.svg': 'image/svg+xml',
+    '.tiff': 'image/tiff',
+    '.tif': 'image/tiff',
+    '.avif': 'image/avif',
+  };
+
+  return mimeMap[ext] || 'image/jpeg';
+}
+
 export async function uploadFileToBucket(
   folderName: string = 'documents',
   fileBuffer: Buffer,
   fileName: string,
   contentType: string
 ): Promise<string> {
-  const fileExt = path.extname(fileName) || '.png';
+  const fileExt = path.extname(fileName) || '.jpg';
   const uniquePath = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(7)}${fileExt}`;
   const bucketName = 'onchaiin-uploads';
+  const finalMimeType = detectMimeType(fileName, contentType);
 
   // 1. Upload directly to Supabase Storage bucket 'onchaiin-uploads'
   if (supabase) {
@@ -25,7 +51,7 @@ export async function uploadFileToBucket(
       const { data, error } = await supabase.storage
         .from(bucketName)
         .upload(uniquePath, fileBuffer, {
-          contentType: contentType || 'image/png',
+          contentType: finalMimeType,
           upsert: true,
         });
 
@@ -34,7 +60,7 @@ export async function uploadFileToBucket(
           .from(bucketName)
           .getPublicUrl(uniquePath);
 
-        console.log(`✅ Uploaded file to Supabase bucket "${bucketName}/${uniquePath}":`, publicUrlData.publicUrl);
+        console.log(`✅ Uploaded ${finalMimeType} file to Supabase bucket "${bucketName}/${uniquePath}":`, publicUrlData.publicUrl);
         return publicUrlData.publicUrl;
       } else if (error) {
         console.warn('Supabase storage upload error:', error.message);
@@ -59,7 +85,6 @@ export async function uploadFileToBucket(
   }
 
   // 3. Guaranteed fallback: Return exact base64 Data URL of user's uploaded image
-  const mimeType = contentType || 'image/png';
   const base64Data = fileBuffer.toString('base64');
-  return `data:${mimeType};base64,${base64Data}`;
+  return `data:${finalMimeType};base64,${base64Data}`;
 }
